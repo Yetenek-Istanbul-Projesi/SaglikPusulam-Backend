@@ -7,5 +7,6 @@ use App\Models\User;
 
 interface UserServiceInterface
 {
+    // Burada UserService Arayüzünü Belirliyoruz
     public function register(UserDTO $userDTO): User;
 }

@@ -28,4 +28,17 @@ class UserDTO
             privacy_accepted: $data['privacy_accepted']
         );
     }
+
+    public function toArray(): array
+    {
+        return [
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'password' => $this->password,
+            'terms_accepted' => $this->terms_accepted,
+            'privacy_accepted' => $this->privacy_accepted,
+        ];
+    }
 }
