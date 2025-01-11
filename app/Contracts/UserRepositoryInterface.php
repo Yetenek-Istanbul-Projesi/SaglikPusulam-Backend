@@ -7,6 +7,7 @@ use App\Models\User;
 
 interface UserRepositoryInterface
 {
+    // Burada Reponun arayüzünü belirtiyoruz
     public function create(UserDTO $userDTO): User;
     public function findByEmail(string $email): ?User;
 }
