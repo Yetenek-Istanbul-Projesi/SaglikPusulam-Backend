@@ -11,7 +11,6 @@ class UserRepository implements UserRepositoryInterface
 {
     public function create(UserDTO $userDTO): User
     {
-        //Burada kullanıcıdan gelen verileri veritabanına kaydediyoruz
         return User::create([
             'first_name' => $userDTO->first_name,
             'last_name' => $userDTO->last_name,
@@ -23,9 +22,44 @@ class UserRepository implements UserRepositoryInterface
         ]);
     }
 
-    // Burada kullanıcının e-posta adresinin veritabanında olup olmadığını buluyoruz
     public function findByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
+    }
+
+    public function findByPhone(string $phone): ?User
+    {
+        return User::where('phone', $phone)->first();
+    }
+
+    public function markEmailAsVerified(User $user): void
+    {
+        $user->email_verified_at = now();
+        $user->email_verification_code = null;
+        $user->email_verification_code_expires_at = null;
+        $user->save();
+    }
+
+    public function markPhoneAsVerified(User $user): void
+    {
+        $user->phone_verified_at = now();
+        $user->phone_verification_code = null;
+        $user->phone_verification_code_expires_at = null;
+        $user->save();
+    }
+
+    public function updateVerificationCode(User $user, string $type, string $code): void
+    {
+        $expiresAt = now()->addHours(1);
+        
+        if ($type === 'email') {
+            $user->email_verification_code = $code;
+            $user->email_verification_code_expires_at = $expiresAt;
+        } else {
+            $user->phone_verification_code = $code;
+            $user->phone_verification_code_expires_at = $expiresAt;
+        }
+        
+        $user->save();
     }
 }
