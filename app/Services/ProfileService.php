@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Contracts\Services\ProfileServiceInterface;
+use App\DTOs\Auth\ChangePasswordDTO;
 use App\DTOs\Profile\UpdateProfileDTO;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileService implements ProfileServiceInterface
@@ -37,5 +39,17 @@ class ProfileService implements ProfileServiceInterface
         }
 
         return $path;
+    }
+
+    public function changePassword(User $user, ChangePasswordDTO $dto): bool
+    {
+        // Verify current password
+        if (!Hash::check($dto->current_password, $user->password)) {
+            throw new \InvalidArgumentException('Current password is incorrect');
+        }
+
+        // Update password
+        $user->password = Hash::make($dto->new_password);
+        return $user->save();
     }
 }
