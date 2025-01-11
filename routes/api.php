@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ServiceListController;
+use App\Http\Controllers\Api\V1\CommentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,7 +10,11 @@ Route::prefix('v1')->group(function () { //www.saglikpusulam.com/api/v1
     Route::post('/register', [AuthController::class, 'register']); //www.saglikpusulam.com/api/v1/register
     Route::post('/login', [AuthController::class, 'login']);   //www.saglikpusulam.com/api/v1/login
 
-    // Favori ve karşılaştırma listesi rotaları (Oturum açmış kullanıcılar için)
+    // Yorum rotaları (Herkes için)
+    Route::post('/comments', [CommentController::class, 'addComment']);
+    Route::get('/services/{serviceId}/comments', [CommentController::class, 'getServiceComments']);
+
+    // Oturum gerektiren rotalar
     Route::middleware('auth:sanctum')->group(function () {
         // Favori listesi rotaları
         Route::post('/favorites/add', [ServiceListController::class, 'addToFavorites']);
@@ -20,5 +25,14 @@ Route::prefix('v1')->group(function () { //www.saglikpusulam.com/api/v1
         Route::post('/comparisons/add', [ServiceListController::class, 'addToComparisons']);
         Route::post('/comparisons/remove', [ServiceListController::class, 'removeFromComparisons']);
         Route::get('/comparisons', [ServiceListController::class, 'getComparisons']);
+
+        // Yorum yönetimi rotaları
+        Route::delete('/comments/{commentId}', [CommentController::class, 'deleteComment']);
+    });
+
+    // Admin rotaları
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::get('/comments/pending', [CommentController::class, 'getPendingComments']);
+        Route::patch('/comments/{commentId}/status', [CommentController::class, 'updateCommentStatus']);
     });
 });
