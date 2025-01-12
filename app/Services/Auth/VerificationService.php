@@ -38,10 +38,17 @@ class VerificationService implements VerificationServiceInterface
                 throw new \Exception('E-posta adresi bulunamadı.');
             }
 
+            // Eğer PendingUser ise verification_token'ı al
+            $verificationToken = $user instanceof PendingUser ? $user->verification_token : null;
+
+            if (!$verificationToken) {
+                throw new \Exception('Geçersiz kullanıcı durumu.');
+            }
+
             Log::info("Email verification code for {$email}: {$code}");
             
             try {
-                $notification = new EmailVerificationNotification($code);
+                $notification = new EmailVerificationNotification($code, $verificationToken);
                 $user->notify($notification);
                 
                 return VerificationResponseDTO::success(
@@ -78,10 +85,17 @@ class VerificationService implements VerificationServiceInterface
                 throw new \Exception('Telefon numarası bulunamadı.');
             }
 
+            // Eğer PendingUser ise verification_token'ı al
+            $verificationToken = $user instanceof PendingUser ? $user->verification_token : null;
+
+            if (!$verificationToken) {
+                throw new \Exception('Geçersiz kullanıcı durumu.');
+            }
+
             Log::info("Phone verification code for {$phone}: {$code}");
             
             try {
-                $notification = new PhoneVerificationNotification($code);
+                $notification = new PhoneVerificationNotification($code, $verificationToken);
                 $user->notify($notification);
                 
                 return VerificationResponseDTO::success(
@@ -107,12 +121,24 @@ class VerificationService implements VerificationServiceInterface
     {
         $key = self::EMAIL_CODE_PREFIX . $email;
         $storedCode = Cache::get($key);
+        
+        Log::info("Verifying email code", [
+            'email' => $email,
+            'provided_code' => $code,
+            'stored_code' => $storedCode,
+            'stored_code_type' => gettype($storedCode)
+        ]);
 
-        if ($storedCode && $storedCode === $code) {
+        if ($storedCode && (string)$storedCode === (string)$code) {
             Cache::forget($key);
+            Log::info("Email verified successfully", ['email' => $email]);
             return true;
         }
 
+        Log::warning("Email verification failed", [
+            'email' => $email,
+            'reason' => !$storedCode ? 'No stored code found' : 'Code mismatch'
+        ]);
         return false;
     }
 
@@ -120,12 +146,24 @@ class VerificationService implements VerificationServiceInterface
     {
         $key = self::PHONE_CODE_PREFIX . $phone;
         $storedCode = Cache::get($key);
+        
+        Log::info("Verifying phone code", [
+            'phone' => $phone,
+            'provided_code' => $code,
+            'stored_code' => $storedCode,
+            'stored_code_type' => gettype($storedCode)
+        ]);
 
-        if ($storedCode && $storedCode === $code) {
+        if ($storedCode && (string)$storedCode === (string)$code) {
             Cache::forget($key);
+            Log::info("Phone verified successfully", ['phone' => $phone]);
             return true;
         }
 
+        Log::warning("Phone verification failed", [
+            'phone' => $phone,
+            'reason' => !$storedCode ? 'No stored code found' : 'Code mismatch'
+        ]);
         return false;
     }
 
