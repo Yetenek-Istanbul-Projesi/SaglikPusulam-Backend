@@ -2,8 +2,6 @@
 
 namespace App\DTOs\User\Profile;
 
-use Illuminate\Support\Facades\Log;
-
 class UpdateProfileDTO
 {
     public function __construct(
@@ -17,8 +15,6 @@ class UpdateProfileDTO
 
     public static function fromRequest(array $data): self
     {
-        Log::info('Creating DTO from data:', $data);
-        
         return new self(
             first_name: $data['first_name'] ?? null,
             last_name: $data['last_name'] ?? null,

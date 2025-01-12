@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -15,7 +15,16 @@ class ChangePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => 'required|string|min:8',
+            'current_password' => [
+                'required',
+                'string',
+                'min:8',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, auth()->user()->password)) {
+                        $fail('Mevcut şifre yanlış.');
+                    }
+                }
+            ],
             'new_password' => 'required|string|min:8|different:current_password',
             'new_password_confirmation' => 'required|string|same:new_password'
         ];
@@ -28,13 +37,14 @@ class ChangePasswordRequest extends FormRequest
             'new_password.required' => 'Yeni şifre alanı zorunludur',
             'new_password.min' => 'Yeni şifre en az 8 karakter olmalıdır',
             'new_password.different' => 'Yeni şifre mevcut şifreden farklı olmalıdır',
-            'new_password_confirmation.same' => 'Şifre tekrarı eşleşmiyor'
+            'new_password_confirmation.same' => 'Şifre tekrarı eşleşmiyor',
+            'new_password_confirmation.required' => 'Şifre tekrarı zorunludur'
         ];
     }
 
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
-        throw new ValidationException($validator, response()->json([
+        throw new \Illuminate\Validation\ValidationException($validator, response()->json([
             'status' => 'error',
             'message' => 'Validasyon hatası',
             'errors' => $validator->errors()

@@ -11,7 +11,6 @@ use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Requests\User\UploadProfilePhotoRequest;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
@@ -23,19 +22,9 @@ class ProfileController extends Controller
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
-        
-        // JSON verilerini al
-        $data = $request->validated();
-
-        Log::info('Profile update request:', [
-            'method' => $request->method(),
-            'content_type' => $request->header('Content-Type'),
-            'input_data' => $data
-        ]);
-
         $result = $this->profileService->updateProfile(
             $user,
-            UpdateProfileDTO::fromRequest($data)
+            UpdateProfileDTO::fromRequest($request->validated())
         );
 
         return response()->json([
@@ -50,15 +39,12 @@ class ProfileController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         
         if ($request->hasFile('photo')) {
-            // Eski fotoğrafı sil
-            if ($user->profile_photo) {
-                Storage::disk('public')->delete($user->profile_photo);
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
             }
 
-            // Yeni fotoğrafı kaydet
             $path = $request->file('photo')->store('profile-photos', 'public');
             
-            // Kullanıcının fotoğraf yolunu güncelle
             $result = $this->profileService->updateProfile(
                 $user,
                 UpdateProfileDTO::fromRequest(['profile_photo' => $path])
