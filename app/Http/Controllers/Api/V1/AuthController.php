@@ -10,6 +10,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {  
@@ -27,33 +28,35 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        // $request : Kullanıcı verileri
-        // $validated : Kullanıcı verilerinin doğrulanması
-        // UserDTO::fromRequest($request->validated()) : Kullanıcı verilerini Kalıba Dönüştürme
-        // $this->userService->register(UserDTO::fromRequest($request->validated())) : Dönüştürülen verileri Veritabanına Kaydetme
+        try {
+            $user = $this->userService->register(
+                UserDTO::fromRequest($request->validated())
+            );
 
+            $token = auth()->login($user);
 
-        $user = $this->userService->register(
-            UserDTO::fromRequest($request->validated())
-        );
-
-
-        // auth()->login($user) : Kullanıcı oturum açma(Kaydolmuş olan kullanıcı oturum açar)
-        // $user : Kullanıcının oturum açma bilgileri
-        // $token : Oturum açan kullanıcının oturum tokeni
-
-        $token = auth()->login($user);
-
-        // İşlemin sonunda apiye oturum açma bilgileri ve oturum tokeni gönderilir
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Kullanıcı başarıyla oluşturuldu',
-            'user' => $user,
-            'authorization' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kullanıcı başarıyla oluşturuldu',
+                'user' => $user,
+                'authorization' => [
+                    'token' => $token,
+                    'type' => 'bearer',
+                ]
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doğrulama hatası',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bir hata oluştu',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function login(Request $request): JsonResponse
