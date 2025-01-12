@@ -47,4 +47,26 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function routeNotificationForMail()
+    {
+        return $this->email;
+    }
+
+    public function routeNotificationForSms()
+    {
+        $phone = $this->phone;
+        
+        // Telefon numarasını uluslararası formata çevir
+        if (!str_starts_with($phone, '+')) {
+            // Başında 0 varsa kaldır
+            if (str_starts_with($phone, '0')) {
+                $phone = substr($phone, 1);
+            }
+            // +90 ekle
+            $phone = '+90' . $phone;
+        }
+        
+        return $phone;
+    }
 }

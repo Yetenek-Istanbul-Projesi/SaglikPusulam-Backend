@@ -3,94 +3,136 @@
 namespace App\Services\Auth;
 
 use App\Contracts\VerificationServiceInterface;
-use App\DTOs\VerificationResponseDTO;
+use App\DTOs\User\VerificationResponseDTO;
 use App\Models\PendingUser;
 use App\Models\User;
 use App\Notifications\EmailVerificationNotification;
 use App\Notifications\PhoneVerificationNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class VerificationService implements VerificationServiceInterface
 {
-    private const VERIFICATION_CODE_LENGTH = 6;
-    private const VERIFICATION_CODE_TTL = 300; // 5 dakika
+    private const EMAIL_CODE_PREFIX = 'email_verification_';
+    private const PHONE_CODE_PREFIX = 'phone_verification_';
+    private const CODE_EXPIRY_MINUTES = 60;
 
     public function generateVerificationCode(): string
     {
-        return str_pad((string)random_int(0, 999999), self::VERIFICATION_CODE_LENGTH, '0', STR_PAD_LEFT);
+        return (string) random_int(100000, 999999);
     }
 
-    public function sendVerification(string $verificationType, string $verificationValue): VerificationResponseDTO
+    public function sendEmailVerification(string $email): VerificationResponseDTO
     {
         try {
             $code = $this->generateVerificationCode();
-            $key = "{$verificationType}_verification:{$verificationValue}";
-            
-            Cache::put($key, $code, self::VERIFICATION_CODE_TTL);
-            
-            if ($verificationType === 'email') {
-                // E-posta gönderme işlemi
-                if ($user = User::where('email', $verificationValue)->first()) {
-                    $user->notify(new EmailVerificationNotification($code));
-                } else {
-                    // TODO: PendingUser için e-posta gönderimi
-                    // Mail::to($verificationValue)->send(new VerificationCodeMail($code));
-                }
-                
-                return VerificationResponseDTO::success(
-                    message: 'E-posta doğrulama kodu gönderildi'
-                );
-            } elseif ($verificationType === 'phone') {
-                // SMS gönderme işlemi
-                if ($user = User::where('phone', $verificationValue)->first()) {
-                    $user->notify(new PhoneVerificationNotification($code));
-                } else {
-                    // TODO: PendingUser için SMS gönderimi
-                    // SMSService::send($verificationValue, "Doğrulama kodunuz: {$code}");
-                }
-                
-                return VerificationResponseDTO::success(
-                    message: 'SMS doğrulama kodu gönderildi'
-                );
-            } else {
-                return VerificationResponseDTO::failure(
-                    message: 'Geçersiz doğrulama türü'
-                );
+            $key = self::EMAIL_CODE_PREFIX . $email;
+
+            Cache::put($key, $code, now()->addMinutes(self::CODE_EXPIRY_MINUTES));
+
+            $user = User::where('email', $email)->first() ?? 
+                   PendingUser::where('email', $email)->first();
+
+            if (!$user) {
+                throw new \Exception('E-posta adresi bulunamadı.');
             }
+
+            Log::info("Email verification code for {$email}: {$code}");
+            
+            try {
+                $notification = new EmailVerificationNotification($code);
+                $user->notify($notification);
+                
+                return VerificationResponseDTO::success(
+                    'Doğrulama kodu e-posta adresinize gönderildi.'
+                );
+            } catch (\Exception $e) {
+                // Gönderim başarısız olursa cache'i temizle
+                Cache::forget($key);
+                Log::error("Email verification error: " . $e->getMessage());
+                throw new \Exception('E-posta doğrulama kodu gönderilemedi: ' . $e->getMessage());
+            }
+
         } catch (\Exception $e) {
-            return VerificationResponseDTO::failure(
-                message: 'Doğrulama kodu gönderilemedi',
-                error: $e->getMessage()
+            Log::error("Email verification error: " . $e->getMessage());
+            return VerificationResponseDTO::error(
+                'Doğrulama kodu gönderilemedi.',
+                $e->getMessage()
             );
         }
     }
 
-    public function verify(string $verificationType, string $verificationValue, string $code): bool
+    public function sendPhoneVerification(string $phone): VerificationResponseDTO
     {
-        $key = "{$verificationType}_verification:{$verificationValue}";
+        try {
+            $code = $this->generateVerificationCode();
+            $key = self::PHONE_CODE_PREFIX . $phone;
+
+            Cache::put($key, $code, now()->addMinutes(self::CODE_EXPIRY_MINUTES));
+
+            $user = User::where('phone', $phone)->first() ?? 
+                   PendingUser::where('phone', $phone)->first();
+
+            if (!$user) {
+                throw new \Exception('Telefon numarası bulunamadı.');
+            }
+
+            Log::info("Phone verification code for {$phone}: {$code}");
+            
+            try {
+                $notification = new PhoneVerificationNotification($code);
+                $user->notify($notification);
+                
+                return VerificationResponseDTO::success(
+                    'Doğrulama kodu telefonunuza gönderildi.'
+                );
+            } catch (\Exception $e) {
+                // Gönderim başarısız olursa cache'i temizle
+                Cache::forget($key);
+                Log::error("Phone verification error: " . $e->getMessage());
+                throw new \Exception('SMS doğrulama kodu gönderilemedi: ' . $e->getMessage());
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Phone verification error: " . $e->getMessage());
+            return VerificationResponseDTO::error(
+                'Doğrulama kodu gönderilemedi.',
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function verifyEmail(string $email, string $code): bool
+    {
+        $key = self::EMAIL_CODE_PREFIX . $email;
         $storedCode = Cache::get($key);
-        
+
         if ($storedCode && $storedCode === $code) {
             Cache::forget($key);
             return true;
         }
-        
+
+        return false;
+    }
+
+    public function verifyPhone(string $phone, string $code): bool
+    {
+        $key = self::PHONE_CODE_PREFIX . $phone;
+        $storedCode = Cache::get($key);
+
+        if ($storedCode && $storedCode === $code) {
+            Cache::forget($key);
+            return true;
+        }
+
         return false;
     }
 
     public function storePendingUser(array $userData): PendingUser
     {
-        return PendingUser::create([
-            'first_name' => $userData['first_name'],
-            'last_name' => $userData['last_name'],
-            'email' => $userData['email'],
-            'phone' => $userData['phone'],
-            'password' => $userData['password'],
-            'terms_accepted' => $userData['terms_accepted'],
-            'privacy_accepted' => $userData['privacy_accepted'],
-            'verification_token' => Str::random(64)
-        ]);
+        $userData['verification_token'] = Str::random(60);
+        return PendingUser::create($userData);
     }
 
     public function verifyAndCreateUser(string $verificationToken): ?User

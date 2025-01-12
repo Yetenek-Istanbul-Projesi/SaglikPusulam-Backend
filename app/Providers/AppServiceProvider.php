@@ -8,12 +8,14 @@ use App\Contracts\ServiceListServiceInterface;
 use App\Contracts\UserRepositoryInterface;
 use App\Contracts\UserServiceInterface;
 use App\Contracts\VerificationServiceInterface;
+use App\Contracts\Services\ProfileServiceInterface;
 use App\Repositories\UserRepository;
 use App\Services\Auth\VerificationService;
 use App\Services\Comment\CommentService;
 use App\Services\Service\ServiceManagementService;
 use App\Services\Service\ServiceListService;
 use App\Services\User\UserService;
+use App\Services\User\ProfileService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         // Auth & User Services
         $this->app->singleton(UserServiceInterface::class, UserService::class);
         $this->app->singleton(VerificationServiceInterface::class, VerificationService::class);
+        $this->app->singleton(ProfileServiceInterface::class, ProfileService::class);
 
         // Service Management Services
         $this->app->singleton(ServiceManagementInterface::class, ServiceManagementService::class);

@@ -8,6 +8,7 @@ use App\Contracts\VerificationServiceInterface;
 use App\DTOs\Auth\RegisterDTO;
 use App\DTOs\Auth\LoginDTO;
 use App\DTOs\UserDTO;
+use App\DTOs\User\VerificationResponseDTO;
 use App\Models\User;
 use App\Models\PendingUser;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,7 @@ class UserService implements UserServiceInterface
     public function register(RegisterDTO $registerDTO): array
     {
         $errors = [];
+        $pendingUser = null;
         
         // E-posta ve telefon numarası hem User hem de PendingUser tablolarında kontrol edilmeli
         if ($this->userRepository->findByEmail($registerDTO->email) || 
@@ -39,33 +41,42 @@ class UserService implements UserServiceInterface
             throw ValidationException::withMessages($errors);
         }
 
-        // Geçici kullanıcı kaydını oluştur
-        $pendingUser = $this->verificationService->storePendingUser([
-            'first_name' => $registerDTO->first_name,
-            'last_name' => $registerDTO->last_name,
-            'email' => $registerDTO->email,
-            'phone' => $registerDTO->phone,
-            'password' => bcrypt($registerDTO->password),
-            'terms_accepted' => $registerDTO->terms_accepted,
-            'privacy_accepted' => $registerDTO->privacy_accepted
-        ]);
+        try {
+            // Geçici kullanıcı kaydını oluştur
+            $pendingUser = $this->verificationService->storePendingUser([
+                'first_name' => $registerDTO->first_name,
+                'last_name' => $registerDTO->last_name,
+                'email' => $registerDTO->email,
+                'phone' => $registerDTO->phone,
+                'password' => bcrypt($registerDTO->password),
+                'terms_accepted' => $registerDTO->terms_accepted,
+                'privacy_accepted' => $registerDTO->privacy_accepted
+            ]);
 
-        // Doğrulama kodlarını gönder
-        $emailResult = $this->verificationService->sendVerification('email', $pendingUser->email);
-        $phoneResult = $this->verificationService->sendVerification('phone', $pendingUser->phone);
+            // Doğrulama kodlarını gönder
+            $emailResult = $this->verificationService->sendEmailVerification($pendingUser->email);
+            $phoneResult = $this->verificationService->sendPhoneVerification($pendingUser->phone);
 
-        if (!$emailResult->success || !$phoneResult->success) {
-            // Eğer doğrulama kodları gönderilemezse geçici kaydı sil
-            $pendingUser->delete();
-            throw new \Exception('Doğrulama kodları gönderilemedi. Lütfen daha sonra tekrar deneyin.');
+            if (!$emailResult->success || !$phoneResult->success) {
+                throw new \Exception('Doğrulama kodları gönderilemedi: ' . 
+                    (!$emailResult->success ? 'Email: ' . $emailResult->error : '') . 
+                    (!$phoneResult->success ? 'SMS: ' . $phoneResult->error : ''));
+            }
+
+            return [
+                'verification_token' => $pendingUser->verification_token,
+                'email_sent' => $emailResult->success,
+                'phone_sent' => $phoneResult->success,
+                'message' => 'Doğrulama kodları e-posta ve telefon numaranıza gönderildi.'
+            ];
+
+        } catch (\Exception $e) {
+            // Hata durumunda geçici kaydı sil
+            if ($pendingUser) {
+                $pendingUser->delete();
+            }
+            throw new \Exception('Kayıt işlemi başarısız: ' . $e->getMessage());
         }
-
-        return [
-            'verification_token' => $pendingUser->verification_token,
-            'email_sent' => $emailResult->success,
-            'phone_sent' => $phoneResult->success,
-            'message' => 'Doğrulama kodları e-posta ve telefon numaranıza gönderildi.'
-        ];
     }
 
     public function verifyRegistration(string $verificationToken, string $emailCode, string $phoneCode): ?User
@@ -80,8 +91,8 @@ class UserService implements UserServiceInterface
         }
 
         // E-posta ve telefon kodlarını doğrula
-        $isEmailVerified = $this->verificationService->verify('email', $pendingUser->email, $emailCode);
-        $isPhoneVerified = $this->verificationService->verify('phone', $pendingUser->phone, $phoneCode);
+        $isEmailVerified = $this->verificationService->verifyEmail($pendingUser->email, $emailCode);
+        $isPhoneVerified = $this->verificationService->verifyPhone($pendingUser->phone, $phoneCode);
 
         if (!$isEmailVerified || !$isPhoneVerified) {
             throw ValidationException::withMessages([

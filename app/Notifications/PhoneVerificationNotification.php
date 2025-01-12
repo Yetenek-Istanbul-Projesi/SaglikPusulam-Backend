@@ -3,26 +3,29 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\VonageMessage;
 use Illuminate\Notifications\Notification;
+use App\Notifications\Channels\TwilioChannel;
 
-class PhoneVerificationNotification extends Notification implements ShouldQueue
+class PhoneVerificationNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(private readonly string $code) {}
+    private string $code;
+
+    public function __construct(string $code)
+    {
+        $this->code = $code;
+    }
 
     public function via($notifiable): array
     {
-        return ['vonage'];
+        return [TwilioChannel::class];
     }
 
-    public function toVonage($notifiable): VonageMessage
+    public function toTwilio($notifiable): array
     {
-
-        // Telefon doğrulama için gerekli body mesajını belirttim.
-        return (new VonageMessage)
-            ->content("Sağlık Pusulam doğrulama kodunuz: {$this->code}. Bu kod 60 dakika süreyle geçerlidir.");
+        return [
+            'content' => "Sağlık Pusulam doğrulama kodunuz: {$this->code}"
+        ];
     }
 }
