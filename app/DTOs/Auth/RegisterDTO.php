@@ -1,10 +1,9 @@
 <?php
 
-namespace App\DTOs;
+namespace App\DTOs\Auth;
 
-class UserDTO
+class RegisterDTO
 {
-    // Burada kullanıcıdan gelen verileri belirtiyoruz
     public function __construct(
         public readonly string $first_name,
         public readonly string $last_name,
@@ -15,7 +14,6 @@ class UserDTO
         public readonly bool $privacy_accepted
     ) {}
 
-    // Burada kullanıcıdan gelen verileri mevcut verilere aktarıyoruz.
     public static function fromRequest(array $data): self
     {
         return new self(
