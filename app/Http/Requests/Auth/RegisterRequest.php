@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +13,6 @@ class RegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        // Burada kullanıcıdan gelen verilerin doğruluğunu kontrol ediyoruz
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -27,7 +26,6 @@ class RegisterRequest extends FormRequest
 
     public function messages(): array
     {
-        // Burada doğrulama hatalarının mesajlarını belirliyoruz
         return [
             'first_name.required' => 'Ad alanı zorunludur.',
             'last_name.required' => 'Soyad alanı zorunludur.',
@@ -44,7 +42,6 @@ class RegisterRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        // Form-data ile gelen boolean değerleri uygun formata dönüştürme
         $this->merge([
             'terms_accepted' => filter_var($this->terms_accepted, FILTER_VALIDATE_BOOLEAN),
             'privacy_accepted' => filter_var($this->privacy_accepted, FILTER_VALIDATE_BOOLEAN),

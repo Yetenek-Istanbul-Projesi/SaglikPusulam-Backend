@@ -23,11 +23,11 @@ class ChangePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'current_password.required' => 'Current password is required',
-            'new_password.required' => 'New password is required',
-            'new_password.min' => 'New password must be at least 8 characters',
-            'new_password.different' => 'New password must be different from current password',
-            'new_password_confirmation.same' => 'Password confirmation does not match'
+            'current_password.required' => 'Mevcut şifre alanı zorunludur',
+            'new_password.required' => 'Yeni şifre alanı zorunludur',
+            'new_password.min' => 'Yeni şifre en az 8 karakter olmalıdır',
+            'new_password.different' => 'Yeni şifre mevcut şifreden farklı olmalıdır',
+            'new_password_confirmation.same' => 'Şifre tekrarı eşleşmiyor'
         ];
     }
 }

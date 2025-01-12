@@ -1,8 +1,7 @@
 <?php
 
-namespace App\DTOs;
+namespace App\DTOs\User;
 
-/** Bu DTO ile onay sırasında başarılı / başarısız olma durumu belirtiliyor */
 class VerificationResponseDTO
 {
     public function __construct(
@@ -19,7 +18,7 @@ class VerificationResponseDTO
         );
     }
 
-    public static function failure(string $message, string $error): self
+    public static function error(string $message, string $error): self
     {
         return new self(
             success: false,
@@ -30,10 +29,10 @@ class VerificationResponseDTO
 
     public function toArray(): array
     {
-        return [
+        return array_filter([
             'success' => $this->success,
             'message' => $this->message,
             'error' => $this->error,
-        ];
+        ], fn($value) => !is_null($value));
     }
 }
