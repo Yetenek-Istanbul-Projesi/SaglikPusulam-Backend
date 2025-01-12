@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ServiceListController;
 use App\Http\Controllers\Api\V1\CommentController;
-use App\Http\Controllers\Api\V1\PasswordResetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,8 +12,8 @@ Route::prefix('v1')->group(function () { //www.saglikpusulam.com/api/v1
     Route::post('/login', [AuthController::class, 'login']);   //www.saglikpusulam.com/api/v1/login
 
     Route::prefix('auth')->group(function () {
-        Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword']);
-        Route::post('reset-password', [PasswordResetController::class, 'reset']);
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('reset-password', [AuthController::class, 'resetPassword']);
     });
 
     // Yorum rotaları (Herkes için)
