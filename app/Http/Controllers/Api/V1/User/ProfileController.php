@@ -18,33 +18,27 @@ class ProfileController extends Controller
     ) {}
 
     public function update(UpdateProfileRequest $request): JsonResponse
-    { // Burada kullanıcıdan gelen verileri mevcut verilere aktarıyoruz.
-        $user = auth()->user();
-        $dto = UpdateProfileDTO::fromRequest($request->validated());// Burada kullanıcıdan gelen verileri mevcut verilere aktarıyoruz.
-        
-        $updatedUser = $this->profileService->updateProfile($user, $dto); // Profili güncelliyoruz.
+    {
+        $result = $this->profileService->update(
+            UpdateProfileDTO::fromRequest($request->validated())
+        );
 
         return response()->json([
-            'message' => 'Profile updated successfully',
-            'data' => $updatedUser
+            'status' => 'success',
+            'message' => 'Profil bilgileriniz güncellendi',
+            'user' => $result['user']
         ]);
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
-    { // Burada kullanıcıdan gelen verileri mevcut verilere aktarıyoruz.
-        try {
-            $user = auth()->user();
-            $dto = ChangePasswordDTO::fromRequest($request->validated()); // Burada kullanıcıdan gelen verileri mevcut verilere aktarıyoruz.
-            
-            $this->profileService->changePassword($user, $dto); // Paroluyu güncelliyoruz.
+    {
+        $this->profileService->changePassword(
+            ChangePasswordDTO::fromRequest($request->validated())
+        );
 
-            return response()->json([
-                'message' => 'Password changed successfully'
-            ]);
-        } catch (\InvalidArgumentException $e) { // Hata durumunda hata mesajını döndürürüz.
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 422);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Şifreniz başarıyla güncellendi'
+        ]);
     }
 }

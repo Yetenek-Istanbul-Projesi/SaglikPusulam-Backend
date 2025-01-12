@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -29,5 +30,14 @@ class ChangePasswordRequest extends FormRequest
             'new_password.different' => 'Yeni şifre mevcut şifreden farklı olmalıdır',
             'new_password_confirmation.same' => 'Şifre tekrarı eşleşmiyor'
         ];
+    }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new ValidationException($validator, response()->json([
+            'status' => 'error',
+            'message' => 'Validasyon hatası',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

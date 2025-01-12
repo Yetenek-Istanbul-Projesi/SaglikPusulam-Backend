@@ -136,41 +136,25 @@ class AuthController extends Controller
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        try {
-            $this->passwordResetService->sendResetLink(
-                ForgotPasswordDTO::fromRequest($request->validated())
-            );
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Şifre sıfırlama bağlantısı gönderilemedi',
-                'error' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        $this->passwordResetService->sendResetLink(
+            ForgotPasswordDTO::fromRequest($request->validated())
+        );
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi'
+        ]);
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        try {
-            $this->passwordResetService->reset(
-                ResetPasswordDTO::fromRequest($request->validated())
-            );
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Şifreniz başarıyla sıfırlandı'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Şifre sıfırlama işlemi başarısız',
-                'error' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        $this->passwordResetService->reset(
+            ResetPasswordDTO::fromRequest($request->validated())
+        );
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Şifreniz başarıyla sıfırlandı'
+        ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -30,12 +31,21 @@ class UpdateProfileRequest extends FormRequest
             'last_name.string' => 'Soyad alanı metin formatında olmalıdır.',
             'last_name.max' => 'Soyad alanı en fazla 255 karakter olabilir.',
             'email.email' => 'Geçerli bir e-posta adresi giriniz.',
-            'email.unique' => 'Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.',
+            'email.unique' => 'Bu e-posta adresi başka bir kullanıcı tarafından kullanılmaktadır.',
             'phone.string' => 'Telefon numarası metin formatında olmalıdır.',
-            'phone.unique' => 'Bu telefon numarası başka bir kullanıcı tarafından kullanılıyor.',
+            'phone.unique' => 'Bu telefon numarası başka bir kullanıcı tarafından kullanılmaktadır.',
             'profile_photo.image' => 'Profil fotoğrafı bir resim dosyası olmalıdır.',
             'profile_photo.mimes' => 'Profil fotoğrafı jpeg, png, jpg veya gif formatında olmalıdır.',
-            'profile_photo.max' => 'Profil fotoğrafı en fazla 2MB boyutunda olabilir.',
+            'profile_photo.max' => 'Profil fotoğrafı en fazla 2MB olabilir.',
         ];
+    }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new ValidationException($validator, response()->json([
+            'status' => 'error',
+            'message' => 'Validasyon hatası',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

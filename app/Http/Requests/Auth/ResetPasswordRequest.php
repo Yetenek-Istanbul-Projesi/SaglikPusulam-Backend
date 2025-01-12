@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class ResetPasswordRequest extends FormRequest
 {
@@ -31,5 +32,14 @@ class ResetPasswordRequest extends FormRequest
             'password.min' => 'Şifre en az 8 karakter olmalıdır.',
             'password.confirmed' => 'Şifre tekrarı eşleşmiyor.',
         ];
+    }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new ValidationException($validator, response()->json([
+            'status' => 'error',
+            'message' => 'Validasyon hatası',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

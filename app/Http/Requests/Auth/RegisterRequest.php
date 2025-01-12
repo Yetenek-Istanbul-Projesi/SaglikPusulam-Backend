@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class RegisterRequest extends FormRequest
 {
@@ -31,11 +32,13 @@ class RegisterRequest extends FormRequest
             'last_name.required' => 'Soyad alanı zorunludur.',
             'email.required' => 'E-posta alanı zorunludur.',
             'email.email' => 'Geçerli bir e-posta adresi giriniz.',
-            'phone.required' => 'Telefon numarası alanı zorunludur.',
+            'phone.required' => 'Telefon numarası zorunludur.',
             'password.required' => 'Şifre alanı zorunludur.',
             'password.min' => 'Şifre en az 8 karakter olmalıdır.',
             'password.confirmed' => 'Şifre tekrarı eşleşmiyor.',
+            'terms_accepted.required' => 'Kullanım koşullarını kabul etmelisiniz.',
             'terms_accepted.accepted' => 'Kullanım koşullarını kabul etmelisiniz.',
+            'privacy_accepted.required' => 'Gizlilik politikasını kabul etmelisiniz.',
             'privacy_accepted.accepted' => 'Gizlilik politikasını kabul etmelisiniz.',
         ];
     }
@@ -46,5 +49,14 @@ class RegisterRequest extends FormRequest
             'terms_accepted' => filter_var($this->terms_accepted, FILTER_VALIDATE_BOOLEAN),
             'privacy_accepted' => filter_var($this->privacy_accepted, FILTER_VALIDATE_BOOLEAN),
         ]);
+    }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new ValidationException($validator, response()->json([
+            'status' => 'error',
+            'message' => 'Validasyon hatası',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

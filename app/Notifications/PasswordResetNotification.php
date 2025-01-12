@@ -20,12 +20,13 @@ class PasswordResetNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $url = config('app.url') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->email;
+        $url = config('auth.password_reset_url') . '?token=' . $this->token . '&email=' . urlencode($notifiable->email);
 
         return (new MailMessage)
             ->subject('Şifre Sıfırlama İsteği')
             ->line('Bu e-postayı şifre sıfırlama isteğinde bulunduğunuz için alıyorsunuz.')
             ->action('Şifreyi Sıfırla', $url)
+            ->line('Bu link 60 dakika süreyle geçerlidir.')
             ->line('Eğer şifre sıfırlama isteğinde bulunmadıysanız, bu e-postayı görmezden gelebilirsiniz.');
     }
 }
