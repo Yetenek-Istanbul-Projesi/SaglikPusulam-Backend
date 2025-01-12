@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () { //www.saglikpusulam.com/api/v1
     Route::post('/register', [AuthController::class, 'register']); //www.saglikpusulam.com/api/v1/register
+    Route::post('/verify-registration', [AuthController::class, 'verifyRegistration']); //www.saglikpusulam.com/api/v1/verify-registration
     Route::post('/login', [AuthController::class, 'login']);   //www.saglikpusulam.com/api/v1/login
 
     Route::prefix('auth')->group(function () {

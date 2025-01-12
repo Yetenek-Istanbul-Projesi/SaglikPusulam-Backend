@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Services\Service\ServiceManagementService;
 use App\Traits\HasBreadcrumbs;
 use Illuminate\Http\JsonResponse;
 
@@ -11,10 +12,17 @@ class ServiceController extends Controller
 {
     use HasBreadcrumbs;
 
+    private ServiceManagementService $serviceManagement;
+
+    public function __construct(ServiceManagementService $serviceManagement)
+    {
+        $this->serviceManagement = $serviceManagement;
+    }
+
     // Tüm hizmetleri listele
     public function index(): JsonResponse
     {
-        $services = Service::paginate(10);
+        $services = $this->serviceManagement->listServices();
         
         return $this->addBreadcrumbs(
             $services->toArray(),
@@ -25,10 +33,12 @@ class ServiceController extends Controller
     // Belirli bir hizmeti göster
     public function show(Service $service): JsonResponse
     {
+        $service = $this->serviceManagement->getService($service->id);
+
         return $this->addBreadcrumbs(
             $service->toArray(),
-            'service',
-            [$service]
+            'services',
+            $service->name
         );
     }
 

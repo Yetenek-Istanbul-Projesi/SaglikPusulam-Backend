@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Service;
 
-use App\Contracts\Services\ServiceManagementInterface;
+use App\Contracts\ServiceManagementInterface;
 use App\DTOs\Service\ServiceDTO;
 use App\DTOs\Service\ReviewDTO;
 use App\Models\Service;
@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class ServiceManagement implements ServiceManagementInterface
+class ServiceManagementService implements ServiceManagementInterface
 {
     public function listServices(array $filters = []): LengthAwarePaginator
     {
@@ -102,6 +102,19 @@ class ServiceManagement implements ServiceManagementInterface
         });
     }
 
+    public function uploadServicePhoto(Service $service, $photo, bool $isPrimary = false): string
+    {
+        $path = $photo->store('services', 'public');
+        
+        ServicePhoto::create([
+            'service_id' => $service->id,
+            'photo_path' => $path,
+            'is_primary' => $isPrimary
+        ]);
+
+        return $path;
+    }
+
     public function addReview(Service $service, ReviewDTO $dto, ?int $userId = null): ServiceReview
     {
         return DB::transaction(function () use ($service, $dto, $userId) {
@@ -133,19 +146,6 @@ class ServiceManagement implements ServiceManagementInterface
         // Implement Google Places API integration here
         // This would fetch reviews from Google Places API and sync them
         // You'll need to implement this based on your Google API setup
-    }
-
-    public function uploadServicePhoto(Service $service, $photo, bool $isPrimary = false): string
-    {
-        $path = $photo->store('services', 'public');
-        
-        ServicePhoto::create([
-            'service_id' => $service->id,
-            'photo_path' => $path,
-            'is_primary' => $isPrimary
-        ]);
-
-        return $path;
     }
 
     private function uploadReviewPhoto($photo): string
