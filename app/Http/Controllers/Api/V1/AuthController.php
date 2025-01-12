@@ -14,12 +14,12 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Services\PasswordResetService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {  
-    //  Kullanıcı kaydolma ve oturum açma islemleri
     private UserServiceInterface $userService;
     private PasswordResetService $passwordResetService;
 
@@ -32,15 +32,56 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->register(
+            $result = $this->userService->register(
                 RegisterDTO::fromRequest($request->validated())
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'message' => $result['message'],
+                'verification_token' => $result['verification_token']
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doğrulama hatası',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bir hata oluştu',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function verifyRegistration(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'verification_token' => 'required|string',
+            'email_code' => 'required|string|size:6',
+            'phone_code' => 'required|string|size:6'
+        ], [
+            'verification_token.required' => 'Doğrulama token\'ı gereklidir',
+            'email_code.required' => 'E-posta doğrulama kodu gereklidir',
+            'email_code.size' => 'E-posta doğrulama kodu 6 karakter olmalıdır',
+            'phone_code.required' => 'Telefon doğrulama kodu gereklidir',
+            'phone_code.size' => 'Telefon doğrulama kodu 6 karakter olmalıdır'
+        ]);
+
+        try {
+            $user = $this->userService->verifyRegistration(
+                $validated['verification_token'],
+                $validated['email_code'],
+                $validated['phone_code']
             );
 
             $token = auth()->login($user);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Kullanıcı başarıyla oluşturuldu',
+                'message' => 'Hesabınız başarıyla oluşturuldu',
                 'user' => $user,
                 'authorization' => [
                     'token' => $token,
@@ -64,13 +105,11 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        // $request : Kullanıcı verileri
-        // $validated : Kullanıcı verilerinin doğrulanması
         try {
             $result = $this->userService->login(
                 LoginDTO::fromRequest($request->validated())
             );
-            // İşlemin sonunda apiye oturum açma bilgileri ve oturum tokeni gönderilir
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Giriş başarılı',

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\Comment\CommentDTO;
 use App\Http\Controllers\Controller;
-use App\Services\CommentService;
+use App\Services\Comment\CommentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

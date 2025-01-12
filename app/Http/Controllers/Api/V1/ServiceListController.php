@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\Service\ServiceListDTO;
 use App\Http\Controllers\Controller;
-use App\Services\ServiceListService;
+use App\Services\Service\ServiceListService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

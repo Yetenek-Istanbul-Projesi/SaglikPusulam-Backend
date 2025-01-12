@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Service;
 
+use App\Contracts\ServiceListServiceInterface;
 use App\DTOs\Service\ServiceListDTO;
 use App\Models\Favorite;
 use App\Models\Comparison;
 use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 
-class ServiceListService
+class ServiceListService implements ServiceListServiceInterface
 {
-    // Favori listesine ekleme işlemi
     public function addToFavorites(ServiceListDTO $dto): array
     {
         $service = Service::findOrFail($dto->service_id);
@@ -36,7 +36,6 @@ class ServiceListService
         ];
     }
 
-    // Karşılaştırma listesine ekleme işlemi
     public function addToComparisons(ServiceListDTO $dto): array
     {
         $service = Service::findOrFail($dto->service_id);
@@ -68,7 +67,6 @@ class ServiceListService
         ];
     }
 
-    // Favori listesinden çıkarma işlemi
     public function removeFromFavorites(ServiceListDTO $dto): array
     {
         $favorite = Favorite::where('user_id', Auth::id())
@@ -82,7 +80,6 @@ class ServiceListService
         ];
     }
 
-    // Karşılaştırma listesinden çıkarma işlemi
     public function removeFromComparisons(ServiceListDTO $dto): array
     {
         $comparison = Comparison::where('user_id', Auth::id())
@@ -96,11 +93,10 @@ class ServiceListService
         ];
     }
 
-    // Favori listesini getirme işlemi
     public function getFavorites(): array
     {
-        $favorites = Favorite::with('service')
-            ->where('user_id', Auth::id())
+        $favorites = Favorite::where('user_id', Auth::id())
+            ->with('service')
             ->get();
 
         return [
@@ -108,11 +104,10 @@ class ServiceListService
         ];
     }
 
-    // Karşılaştırma listesini getirme işlemi
     public function getComparisons(): array
     {
-        $comparisons = Comparison::with('service')
-            ->where('user_id', Auth::id())
+        $comparisons = Comparison::where('user_id', Auth::id())
+            ->with('service')
             ->get();
 
         return [
