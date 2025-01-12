@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\User;
 
 use App\Contracts\Services\ProfileServiceInterface;
 use App\DTOs\Auth\ChangePasswordDTO;
