@@ -3,7 +3,7 @@
 namespace App\Contracts\Services;
 
 use App\DTOs\Auth\ChangePasswordDTO;
-use App\DTOs\Profile\UpdateProfileDTO;
+use App\DTOs\User\Profile\UpdateProfileDTO;
 use App\Models\User;
 
 interface ProfileServiceInterface
