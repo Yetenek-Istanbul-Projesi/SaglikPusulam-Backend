@@ -41,4 +41,13 @@ class RegisterRequest extends FormRequest
             'privacy_accepted.accepted' => 'Gizlilik politikasını kabul etmelisiniz.',
         ];
     }
+
+    protected function prepareForValidation()
+    {
+        // Form-data ile gelen boolean değerleri uygun formata dönüştürme
+        $this->merge([
+            'terms_accepted' => filter_var($this->terms_accepted, FILTER_VALIDATE_BOOLEAN),
+            'privacy_accepted' => filter_var($this->privacy_accepted, FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
 }

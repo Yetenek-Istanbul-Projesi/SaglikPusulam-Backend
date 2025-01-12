@@ -19,20 +19,23 @@ class UserService implements UserServiceInterface
     // Burada kullanıcıyı kayıt ediyoruz
     public function register(UserDTO $userDTO): User
     {
+        
+        $errors = [];
+        
         // Burada kullanıcının mail adresinin veritabanında olup olmadığını kontrol ediyoruz
         if ($this->userRepository->findByEmail($userDTO->email)) {
-            throw ValidationException::withMessages([
-                'email' => ['Bu e-posta adresi zaten kullanılıyor.'],
-            ]);
+            $errors['email'] = ['Bu e-posta adresi zaten kullanılıyor.'];
         }
-
+        
         // Check if phone exists
         if ($this->userRepository->findByPhone($userDTO->phone)) {
-            throw ValidationException::withMessages([
-                'phone' => ['Bu telefon numarası zaten kullanılıyor.'],
-            ]);
+            $errors['phone'] = ['Bu telefon numarası zaten kullanılıyor.'];
         }
-
+        
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+        
         // Burada kullanıcıyı veritabanına kaydediyoruz
         $user = $this->userRepository->create($userDTO);
 
