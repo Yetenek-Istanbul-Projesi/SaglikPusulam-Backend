@@ -4,51 +4,53 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Service extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'description',
-        'is_active',
-        'type',
+        'address',
         'phone',
         'website',
-        'working_hours',
-        'address',
+        'place_url',
         'latitude',
         'longitude',
-        'contact_info',
         'rating',
         'review_count',
-        'google_place_id'
+        'is_open_now',
+        'opening_hours',
+        'photo_references',
+        'google_place_id',
+        'facility_type'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'rating' => 'decimal:2',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
-        'working_hours' => 'array'
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'rating' => 'float',
+        'review_count' => 'integer',
+        'is_open_now' => 'boolean',
+        'opening_hours' => 'array',
+        'photo_references' => 'array'
     ];
 
+    /**
+     * Hizmet fotoğrafları
+     */
     public function photos(): HasMany
     {
         return $this->hasMany(ServicePhoto::class);
     }
 
+    /**
+     * Hizmet değerlendirmeleri
+     */
     public function reviews(): HasMany
     {
-        return $this->hasMany(ServiceReview::class);
-    }
-
-    public function userReviews(): HasMany
-    {
-        return $this->hasMany(ServiceReview::class)->where('is_google_review', false);
-    }
-
-    public function googleReviews(): HasMany
-    {
-        return $this->hasMany(ServiceReview::class)->where('is_google_review', true);
+        return $this->hasMany(Review::class);
     }
 }
