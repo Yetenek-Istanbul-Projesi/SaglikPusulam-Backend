@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\CommentServiceInterface;
+use App\Contracts\Services\GooglePlacesServiceInterface;
 use App\Contracts\ServiceManagementInterface;
 use App\Contracts\ServiceListServiceInterface;
 use App\Contracts\UserRepositoryInterface;
@@ -16,6 +17,7 @@ use App\Services\Service\ServiceManagementService;
 use App\Services\Service\ServiceListService;
 use App\Services\User\UserService;
 use App\Services\User\ProfileService;
+use App\Services\Google\GooglePlacesServiceV2;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Comment Services
         $this->app->singleton(CommentServiceInterface::class, CommentService::class);
+
+        // Google Places Services
+        $this->app->singleton(GooglePlacesServiceInterface::class, GooglePlacesServiceV2::class);
     }
 
     /**

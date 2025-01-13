@@ -2,165 +2,232 @@
 
 namespace App\Services\Service;
 
-use App\Contracts\ServiceManagementInterface;
+use App\Models\User;
+use App\Models\Service;
+use App\Models\Review;
 use App\DTOs\Service\ServiceDTO;
 use App\DTOs\Service\ReviewDTO;
-use App\Models\Service;
-use App\Models\ServicePhoto;
-use App\Models\ServiceReview;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
+use App\DTOs\Google\PlaceSearchDTO;
+use App\DTOs\Google\PlaceDetailsDTO;
+use App\Contracts\ServiceManagementInterface;
+use App\Enums\ReviewSourceEnum;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Carbon\Carbon;
 
 class ServiceManagementService implements ServiceManagementInterface
 {
-    public function listServices(array $filters = []): LengthAwarePaginator
+    public function createService(ServiceDTO $serviceDTO): Service
     {
-        $query = Service::with(['photos', 'reviews'])
-            ->when(isset($filters['type']), fn($q) => $q->where('type', $filters['type']))
-            ->when(isset($filters['is_active']), fn($q) => $q->where('is_active', $filters['is_active']))
-            ->when(isset($filters['min_rating']), fn($q) => $q->where('rating', '>=', $filters['min_rating']));
-
-        return $query->paginate(10);
-    }
-
-    public function getService(int $id): Service
-    {
-        return Service::with(['photos', 'reviews.user'])->findOrFail($id);
-    }
-
-    public function createService(ServiceDTO $dto): Service
-    {
-        return DB::transaction(function () use ($dto) {
-            $service = Service::create([
-                'name' => $dto->name,
-                'description' => $dto->description,
-                'is_active' => $dto->is_active,
-                'type' => $dto->type,
-                'phone' => $dto->phone,
-                'website' => $dto->website,
-                'working_hours' => $dto->working_hours,
-                'address' => $dto->address,
-                'latitude' => $dto->latitude,
-                'longitude' => $dto->longitude,
-                'contact_info' => $dto->contact_info
-            ]);
-
-            if ($dto->photos) {
-                foreach ($dto->photos as $index => $photo) {
-                    $this->uploadServicePhoto($service, $photo, $index === 0);
-                }
-            }
-
-            return $service->fresh();
-        });
-    }
-
-    public function updateService(Service $service, ServiceDTO $dto): Service
-    {
-        return DB::transaction(function () use ($service, $dto) {
-            $service->update([
-                'name' => $dto->name,
-                'description' => $dto->description,
-                'is_active' => $dto->is_active,
-                'type' => $dto->type,
-                'phone' => $dto->phone,
-                'website' => $dto->website,
-                'working_hours' => $dto->working_hours,
-                'address' => $dto->address,
-                'latitude' => $dto->latitude,
-                'longitude' => $dto->longitude,
-                'contact_info' => $dto->contact_info
-            ]);
-
-            if ($dto->photos) {
-                // Delete existing photos if new ones are provided
-                foreach ($service->photos as $photo) {
-                    Storage::disk('public')->delete($photo->photo_path);
-                }
-                $service->photos()->delete();
-
-                // Upload new photos
-                foreach ($dto->photos as $index => $photo) {
-                    $this->uploadServicePhoto($service, $photo, $index === 0);
-                }
-            }
-
-            return $service->fresh();
-        });
-    }
-
-    public function deleteService(Service $service): bool
-    {
-        return DB::transaction(function () use ($service) {
-            // Delete photos from storage
-            foreach ($service->photos as $photo) {
-                Storage::disk('public')->delete($photo->photo_path);
-            }
-
-            return $service->delete();
-        });
-    }
-
-    public function uploadServicePhoto(Service $service, $photo, bool $isPrimary = false): string
-    {
-        $path = $photo->store('services', 'public');
+        $service = new Service();
+        $this->fillServiceFromDTO($service, $serviceDTO);
+        $service->save();
         
-        ServicePhoto::create([
-            'service_id' => $service->id,
-            'photo_path' => $path,
-            'is_primary' => $isPrimary
-        ]);
-
-        return $path;
+        return $service;
     }
 
-    public function addReview(Service $service, ReviewDTO $dto, ?int $userId = null): ServiceReview
+    public function updateService(int $serviceId, ServiceDTO $serviceDTO): Service
     {
-        return DB::transaction(function () use ($service, $dto, $userId) {
-            $review = new ServiceReview([
-                'comment' => $dto->comment,
-                'rating' => $dto->rating,
-                'is_google_review' => $dto->is_google_review,
-                'reviewer_name' => $dto->reviewer_name,
-                'google_review_id' => $dto->google_review_id,
-                'review_time' => now(),
-                'user_id' => $userId
-            ]);
-
-            if ($dto->photo) {
-                $review->photo_path = $this->uploadReviewPhoto($dto->photo);
-            }
-
-            $service->reviews()->save($review);
-
-            // Update service rating and review count
-            $this->updateServiceRating($service);
-
-            return $review;
-        });
+        $service = Service::findOrFail($serviceId);
+        $this->fillServiceFromDTO($service, $serviceDTO);
+        $service->save();
+        
+        return $service;
     }
 
-    public function syncGoogleReviews(Service $service): void
+    public function getServiceDetails(int $serviceId): ?Service
     {
-        // Implement Google Places API integration here
-        // This would fetch reviews from Google Places API and sync them
-        // You'll need to implement this based on your Google API setup
+        return Service::with(['photos', 'reviews.user'])
+            ->findOrFail($serviceId);
     }
 
-    private function uploadReviewPhoto($photo): string
+    public function getServiceList(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        return $photo->store('reviews', 'public');
+        $query = Service::query()->with(['photos']);
+
+        // Filtreleri uygula
+        if (!empty($filters['name'])) {
+            $query->where('name', 'like', '%' . $filters['name'] . '%');
+        }
+
+        if (!empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (!empty($filters['rating'])) {
+            $query->where('rating', '>=', $filters['rating']);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function deleteService(int $serviceId): bool
+    {
+        $service = Service::findOrFail($serviceId);
+        
+        // Fotoğrafları sil
+        foreach ($service->photos as $photo) {
+            Storage::delete($photo->path);
+            $photo->delete();
+        }
+        
+        return $service->delete();
+    }
+
+    public function addServiceReview(int $serviceId, ReviewDTO $reviewDTO): Review
+    {
+        $service = Service::findOrFail($serviceId);
+        
+        $review = new Review();
+        $review->service_id = $service->id;
+        $review->user_id = auth()->id();
+        $review->rating = $reviewDTO->rating;
+        $review->comment = $reviewDTO->comment;
+        $review->source = ReviewSourceEnum::LOCAL;
+        $review->save();
+        
+        // Ortalama puanı güncelle
+        $this->updateServiceRating($service);
+        
+        return $review;
+    }
+
+    public function updateServiceReview(int $reviewId, ReviewDTO $reviewDTO): Review
+    {
+        $review = Review::findOrFail($reviewId);
+        
+        // Sadece kendi yorumunu güncelleyebilir
+        if ($review->user_id !== auth()->id()) {
+            throw new \Exception('Unauthorized');
+        }
+        
+        $review->rating = $reviewDTO->rating;
+        $review->comment = $reviewDTO->comment;
+        $review->save();
+        
+        // Ortalama puanı güncelle
+        $this->updateServiceRating($review->service);
+        
+        return $review;
+    }
+
+    public function deleteServiceReview(int $reviewId): bool
+    {
+        $review = Review::findOrFail($reviewId);
+        
+        // Sadece kendi yorumunu silebilir
+        if ($review->user_id !== auth()->id()) {
+            throw new \Exception('Unauthorized');
+        }
+        
+        $service = $review->service;
+        $result = $review->delete();
+        
+        // Ortalama puanı güncelle
+        $this->updateServiceRating($service);
+        
+        return $result;
+    }
+
+    public function syncGooglePlace(PlaceSearchDTO $place): Service
+    {
+        return Service::updateOrCreate(
+            ['google_place_id' => $place->placeId],
+            [
+                'name' => $place->name,
+                'description' => $place->description,
+                'address' => $place->address,
+                'latitude' => $place->latitude,
+                'longitude' => $place->longitude,
+                'rating' => $place->rating,
+                'review_count' => $place->userRatingsTotal,
+                'is_open_now' => $place->isOpenNow,
+                'photo_references' => $place->photoReferences,
+                'facility_type' => $place->facilityType?->value,
+                'type' => $place->facilityType?->value ?? 'other'
+            ]
+        );
+    }
+
+    public function syncGooglePlaceDetails(PlaceDetailsDTO $details): Service
+    {
+        $service = Service::updateOrCreate(
+            ['google_place_id' => $details->placeId],
+            [
+                'name' => $details->name,
+                'address' => $details->address,
+                'phone' => $details->phoneNumber,
+                'website' => $details->website,
+                'place_url' => $details->placeUrl,
+                'latitude' => $details->latitude,
+                'longitude' => $details->longitude,
+                'rating' => $details->rating,
+                'review_count' => $details->userRatingsTotal,
+                'is_open_now' => $details->isOpenNow,
+                'opening_hours' => $details->openingHours,
+                'photo_references' => $details->photoReferences,
+                'description' => $details->description,
+                'facility_type' => $details->facilityType?->value
+            ]
+        );
+
+        // Google yorumlarını senkronize et
+        if (!empty($details->reviews)) {
+            $this->syncGoogleReviews($service, $details->reviews);
+        }
+
+        return $service->load(['photos', 'reviews.user']);
+    }
+
+    public function syncGoogleReviews(Service $service, array $googleReviews): void
+    {
+        foreach ($googleReviews as $review) {
+            $user = User::firstOrCreate(
+                ['email' => $review['author_name'] . '@google.review'],
+                [
+                    'name' => $review['author_name'],
+                    'password' => Hash::make(Str::random(16)),
+                    'profile_photo_url' => $review['profile_photo_url'] ?? null
+                ]
+            );
+
+            Review::updateOrCreate(
+                [
+                    'service_id' => $service->id,
+                    'user_id' => $user->id,
+                    'source' => ReviewSourceEnum::GOOGLE,
+                    'source_review_time' => Carbon::createFromTimestamp($review['time'])
+                ],
+                [
+                    'rating' => $review['rating'],
+                    'comment' => $review['text'],
+                    'source_review_id' => $review['time'] . '_' . $user->id
+                ]
+            );
+        }
+    }
+
+    private function fillServiceFromDTO(Service $service, ServiceDTO $dto): void
+    {
+        $service->name = $dto->name;
+        $service->description = $dto->description;
+        $service->address = $dto->address;
+        $service->phone = $dto->phone;
+        $service->website = $dto->website;
+        $service->latitude = $dto->latitude;
+        $service->longitude = $dto->longitude;
+        $service->facility_type = $dto->facilityType;
     }
 
     private function updateServiceRating(Service $service): void
     {
-        $averageRating = $service->reviews()->avg('rating');
+        $avgRating = $service->reviews()->avg('rating');
         $reviewCount = $service->reviews()->count();
-
-        $service->update([
-            'rating' => round($averageRating, 2),
-            'review_count' => $reviewCount
-        ]);
+        
+        $service->rating = $avgRating;
+        $service->review_count = $reviewCount;
+        $service->save();
     }
 }

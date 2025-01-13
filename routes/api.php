@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\ServiceListController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\User\ProfileController;
 use App\Http\Controllers\Api\V1\ServiceController;
+use App\Http\Controllers\Api\V1\GooglePlacesController; // Added GooglePlacesController
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -27,6 +28,13 @@ Route::prefix('v1')->group(function () {
     // Yorum rotaları (Public)
     Route::prefix('comments')->group(function () {
         Route::get('/service/{serviceId}', [CommentController::class, 'getServiceComments']);
+    });
+
+    // Google Places API routes
+    Route::prefix('places')->group(function () {
+        Route::get('search', [GooglePlacesController::class, 'search']);
+        Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']);
+        Route::get('photo', [GooglePlacesController::class, 'getPhoto']);
     });
 
     // Oturum gerektiren rotalar

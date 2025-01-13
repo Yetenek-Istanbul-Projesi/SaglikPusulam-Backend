@@ -10,7 +10,10 @@ class ReviewDTO
         public readonly ?object $photo,
         public readonly ?string $reviewer_name = null,
         public readonly bool $is_google_review = false,
-        public readonly ?string $google_review_id = null
+        public readonly ?string $google_review_id = null,
+        public readonly ?string $source = null,
+        public readonly ?string $sourceReviewId = null,
+        public readonly ?string $sourceReviewTime = null
     ) {}
 
     public static function fromRequest(array $data): self
@@ -21,7 +24,10 @@ class ReviewDTO
             photo: $data['photo'] ?? null,
             reviewer_name: $data['reviewer_name'] ?? null,
             is_google_review: $data['is_google_review'] ?? false,
-            google_review_id: $data['google_review_id'] ?? null
+            google_review_id: $data['google_review_id'] ?? null,
+            source: $data['source'] ?? null,
+            sourceReviewId: $data['sourceReviewId'] ?? null,
+            sourceReviewTime: $data['sourceReviewTime'] ?? null
         );
     }
 }
