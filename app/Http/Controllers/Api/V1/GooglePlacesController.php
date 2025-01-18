@@ -33,7 +33,7 @@ class GooglePlacesController extends Controller
         ]);
     }
 
-    public function getPhotoUrl(string $photoReference): JsonResponse
+   /* public function getPhotoUrl(string $photoReference): JsonResponse
     {
         $url = $this->googlePlacesService->getPhotoUrl($photoReference);
 
@@ -43,5 +43,5 @@ class GooglePlacesController extends Controller
                 'url' => $url
             ]
         ]);
-    }
+    }*/
 }
