@@ -14,13 +14,13 @@ class HealthSearchCriteriaDTO
     public function toSearchQuery(): string
     {
         $query = [];
-        
+
         // Tesis türü varsa ekle, yoksa varsayılan olarak sağlık tesisi ara
         if ($this->facilityType) {
-            $query[] = match($this->facilityType) {
-                'hospital' => 'hastane',
-                'clinic' => 'sağlık merkezi OR klinik OR tıp merkezi',
-                'doctor' => 'doktor OR uzman doktor',
+            $query[] = match ($this->facilityType) {
+                'Hastaneler' => 'hastane',
+                'Klinikler' => 'sağlık merkezi OR klinik OR tıp merkezi',
+                'Doktorlar' => 'doktor OR uzman doktor',
                 default => $this->facilityType
             };
         } else {
@@ -32,13 +32,15 @@ class HealthSearchCriteriaDTO
             $query[] = $this->specialization;
         }
 
-        // Lokasyon bilgisi ekle
-        if ($this->district) {
-            $query[] = "{$this->district} {$this->province}";
-        } else {
-            $query[] = $this->province;
-        }
+        // Ana sorgu kısmını birleştir
+        $mainQuery = implode(' ', $query);
 
-        return implode(' ', $query);
+        // Lokasyon bilgisini ekle
+        $location = $this->district
+            ? "{$this->district} {$this->province}"
+            : $this->province;
+
+        // Final sorguyu oluştur
+        return "{$mainQuery} in {$location}, Türkiye";
     }
 }

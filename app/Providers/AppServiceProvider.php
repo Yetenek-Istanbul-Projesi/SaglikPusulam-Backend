@@ -10,6 +10,8 @@ use App\Contracts\UserRepositoryInterface;
 use App\Contracts\UserServiceInterface;
 use App\Contracts\VerificationServiceInterface;
 use App\Contracts\Services\ProfileServiceInterface;
+use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
+use App\Repositories\GooglePlacesRepository;
 use App\Repositories\UserRepository;
 use App\Services\Auth\VerificationService;
 use App\Services\Comment\CommentService;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Google Places Services
         $this->app->singleton(GooglePlacesServiceInterface::class, GooglePlacesServiceV2::class);
+        $this->app->singleton(GooglePlacesRepositoryInterface::class, GooglePlacesRepository::class);
     }
 
     /**
