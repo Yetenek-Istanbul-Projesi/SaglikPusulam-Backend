@@ -8,6 +8,7 @@ use App\Contracts\Services\GooglePlacesServiceInterface;
 use App\DTOs\Google\HealthSearchCriteriaDTO;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class GooglePlacesController extends Controller
 {
@@ -33,9 +34,16 @@ class GooglePlacesController extends Controller
         ]);
     }
 
-   /* public function getPhotoUrl(string $photoReference): JsonResponse
+    public function getPhotoUrl(string $photoReference): JsonResponse
     {
-        $url = $this->googlePlacesService->getPhotoUrl($photoReference);
+        if (!$photoReference) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fotoğraf referansı bulunamadı'
+            ], 400);
+        }
+
+        $url = $this->googlePlacesService->getPhotoUrl($photoReference, 400);
 
         return response()->json([
             'success' => true,
@@ -43,5 +51,5 @@ class GooglePlacesController extends Controller
                 'url' => $url
             ]
         ]);
-    }*/
+    }
 }

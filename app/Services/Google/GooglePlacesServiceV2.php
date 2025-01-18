@@ -31,9 +31,9 @@ class GooglePlacesServiceV2 implements GooglePlacesServiceInterface
     {
         return $this->repository->getPlaceDetails($placeId);
     }
-/*
+
     public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string
     {
         return $this->repository->getPhotoUrl($photoReference, $maxWidth);
-    }*/
+    }
 }

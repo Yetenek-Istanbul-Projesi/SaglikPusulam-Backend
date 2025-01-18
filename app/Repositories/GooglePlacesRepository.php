@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GooglePlacesRepository implements GooglePlacesRepositoryInterface
 {
@@ -49,5 +50,35 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
         ])->get($endpoint);
 
         return $response->json();
+    }
+    public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string
+    {
+        $url = sprintf(
+            'https://places.googleapis.com/v1/%s/media?maxWidthPx=%d&skipHttpRedirect=true&key=%s',
+            $photoReference,
+            $maxWidth,
+            $this->apiKey
+        );
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'X-Goog-FieldMask' => 'photoUri'
+        ])->get($url);
+
+
+        if (!$response->successful()) {
+            throw new \RuntimeException('Photo URL çekilemedi. Hata: ' . $response->body());
+        }
+        $responseData = $response->json();
+        if (empty($responseData['photoUri'])) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Photo URL bulunamadı. Yanıt: %s',
+                    json_encode($responseData, JSON_PRETTY_PRINT)
+                )
+            );
+        }
+
+        return $response->json()['photoUri'] ?? '';
     }
 }

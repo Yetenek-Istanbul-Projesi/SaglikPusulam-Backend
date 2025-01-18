@@ -34,7 +34,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('places')->group(function () {
         Route::get('search', [GooglePlacesController::class, 'search']);
         Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']);
-        Route::get('photo', [GooglePlacesController::class, 'getPhoto']);
+        Route::get('photo/{photoReference}', [GooglePlacesController::class, 'getPhotoUrl'])->where('photoReference', '.*');
     });
 
     // Oturum gerektiren rotalar
