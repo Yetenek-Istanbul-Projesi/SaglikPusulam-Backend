@@ -22,5 +22,5 @@ interface GooglePlacesServiceInterface
     /**
      * Fotoğraf URL'ini getirir
      */
-  //  public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string;
+    public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string;
 }
