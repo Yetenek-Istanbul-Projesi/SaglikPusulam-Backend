@@ -9,11 +9,15 @@ use Illuminate\Support\Facades\Log;
 class GooglePlacesRepository implements GooglePlacesRepositoryInterface
 {
     private string $apiKey;
+    private $httpClient;
     private const FIELDS_MASK = 'places.id,places.displayName,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.editorialSummary,places.googleMapsLinks.directionsUri,places.photos,places.googleMapsUri,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.currentOpeningHours,places.reviews,places.location';
 
     public function __construct()
     {
         $this->apiKey = config('services.google.places_api_key');
+        $this->httpClient = Http::withHeaders([
+            'X-Goog-Api-Key' => $this->apiKey
+        ]);
     }
 
     public function searchPlaces(string $query, ?string $pageToken = null): array
@@ -30,12 +34,9 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
         if ($pageToken) {
             $payload['pageToken'] = $pageToken;
         }
-        $response = Http::withHeaders([
-            'X-Goog-Api-Key' => $this->apiKey,
+        $response = $this->httpClient->withHeaders([
             'X-Goog-FieldMask' => self::FIELDS_MASK,
-        ])
-
-            ->post($endpoint, $payload);
+        ])->post($endpoint, $payload);
 
         return $response->json();
     }
@@ -44,16 +45,41 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
     {
         $endpoint = "https://places.googleapis.com/v1/places/{$placeId}";
 
-        $response = Http::withHeaders([
-            'X-Goog-Api-Key' => $this->apiKey,
+        $response = $this->httpClient->withHeaders([
             'X-Goog-FieldMask' => self::FIELDS_MASK,
         ])->get($endpoint);
 
         return $response->json();
     }
+
     public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string
     {
-        return "https://places.googleapis.com/v1/places/{$photoReference}/media?key={$this->apiKey}&maxWidthPx={$maxWidth}";
+        // Kendi API endpoint'imizi döndür
+        return route('api.places.photo', ['photoReference' => $photoReference]);
+    }
+
+    public function fetchPhoto(string $photoReference, int $maxWidth = 400): string
+    {
+        $url = "https://places.googleapis.com/v1/{$photoReference}/media?maxWidthPx={$maxWidth}";
+
+        try {
+            $response = Http::withHeaders([
+                'X-Goog-Api-Key' => $this->apiKey,
+                'Accept' => 'image/jpeg'
+            ])->get($url);
+
+            if (!$response->successful()) {
+                throw new \Exception('Fotoğraf yüklenemedi: ' . $response->body());
+            }
+
+            return $response->body();
+        } catch (\Exception $e) {
+            \Log::error('Google Places Photo Error', [
+                'error' => $e->getMessage(),
+                'url' => $url
+            ]);
+            throw $e;
+        }
     }
 
     public function getCoordinates(string $province, ?string $district = null): array
@@ -76,7 +102,7 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
                 'error_message' => $data['error_message'] ?? 'No results found',
                 'address' => $address
             ]);
-            throw new \RuntimeException("Could not find coordinates for the given location");
+            throw new \RuntimeException("Verilen adresde geocode bulunamadı: $address");
         }
 
         $location = $data['results'][0]['geometry']['location'];
