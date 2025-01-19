@@ -33,7 +33,7 @@ class HealthSearchService
     public function filterResults(HealthFilterDTO $filterDTO)
     {
         $lastSearchResults = Cache::get('last_search_results');
-        
+
         if (!$lastSearchResults) {
             throw new \RuntimeException('Önce arama yapmalısınız.');
         }
@@ -49,14 +49,14 @@ class HealthSearchService
 
         $results = $this->googlePlacesService->searchHealthFacilities($criteriaDTO);
         $enrichedResults = $this->enrichWithPhotos($results['places'] ?? []);
-        
+
         Cache::put('last_search_results', [
             'places' => $enrichedResults,
             'meta' => [
                 'center_location' => $centerLocation
             ]
         ], now()->addHours(1));
-        
+
         return [
             'results' => $enrichedResults,
             'total' => count($enrichedResults),
@@ -78,7 +78,7 @@ class HealthSearchService
         return array_map(function ($result) {
             $photoReference = $result['photos'][0]['name'] ?? null;
             return array_merge($result, [
-                'main_photo_url' => $photoReference 
+                'main_photo_url' => $photoReference
                     ? $this->googlePlacesService->getPhotoUrl($photoReference)
                     : null
             ]);
@@ -92,7 +92,8 @@ class HealthSearchService
 
         // Rating (Puan) filtresi (1-5)
         if ($filterDTO->rating) {
-            $filteredResults = array_filter($filteredResults, 
+            $filteredResults = array_filter(
+                $filteredResults,
                 fn($item) => ($item['rating'] ?? 0) >= $filterDTO->rating
             );
         }
@@ -105,17 +106,18 @@ class HealthSearchService
                     'lat' => $item['location']['latitude'] ?? 0,
                     'lng' => $item['location']['longitude'] ?? 0
                 ];
-                
+
                 // İki nokta arasındaki mesafeyi hesapla
                 $distance = $this->calculateDistance($facilityLocation, $centerLocation);
-                
+
                 return $distance <= $filterDTO->distance;
             });
         }
 
         // Açık/Kapalı durumu
         if ($filterDTO->isOpen) {
-            $filteredResults = array_filter($filteredResults, 
+            $filteredResults = array_filter(
+                $filteredResults,
                 fn($item) => ($item['currentOpeningHours']['openNow'] ?? false) === true
             );
         }
@@ -164,7 +166,7 @@ class HealthSearchService
 
         $angle = 2 * asin(sqrt(
             pow(sin($latDelta / 2), 2) +
-            cos($lat1) * cos($lat2) * pow(sin($lngDelta / 2), 2)
+                cos($lat1) * cos($lat2) * pow(sin($lngDelta / 2), 2)
         ));
 
         return $angle * $earthRadius;
@@ -173,5 +175,38 @@ class HealthSearchService
     private function getCenterLocation(string $province, ?string $district = null): array
     {
         return $this->googlePlacesService->getCoordinates($province, $district);
+    }
+
+    public function findPlaceInResults(string $placeId): array
+    {
+        $lastSearchResults = Cache::get('last_search_results');
+
+        if (!$lastSearchResults) {
+            throw new \RuntimeException('Önce arama yapmalısınız.');
+        }
+
+        $place = collect($lastSearchResults['places'])->firstWhere('place_id', $placeId);
+
+        if (!$place) {
+            throw new \RuntimeException('Belirtilen yer bulunamadı.');
+        }
+
+        // Tüm fotoğrafları işle
+        $photoUrls = [];
+        if (isset($place['photos']) && is_array($place['photos'])) {
+            // İlk 4 fotoğrafı al
+            $photos = array_slice($place['photos'], 0, 4);
+            foreach ($photos as $photo) {
+                if (isset($photo['name'])) {
+                    $photoUrls[] = $this->googlePlacesService->getPhotoUrl($photo['name']);
+                }
+            }
+        }
+
+        // Ana veriyi fotoğraf URL'leri ile birleştir
+        return array_merge($place, [
+            'photo_urls' => $photoUrls,
+            // 'main_photo_url' => $photoUrls[0] ?? null
+        ]);
     }
 }

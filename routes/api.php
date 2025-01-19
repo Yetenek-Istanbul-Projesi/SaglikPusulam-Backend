@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\User\ProfileController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\GooglePlacesController; // Added GooglePlacesController
 use App\Http\Controllers\Api\V1\HealthSearchController; // Added HealthSearchController
+use App\Http\Controllers\Api\V1\HealthDetailsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -22,6 +23,7 @@ Route::prefix('v1')->group(function () {
     // Health search and filter routes
     Route::prefix('health')->group(function () {
         Route::get('search', [HealthSearchController::class, 'search']);
+        Route::get('details', [HealthDetailsController::class, 'findSearchInResults']);
         Route::post('filter', [HealthSearchController::class, 'filter']);
     });
 
