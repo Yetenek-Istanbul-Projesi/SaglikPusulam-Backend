@@ -36,4 +36,9 @@ class GooglePlacesServiceV2 implements GooglePlacesServiceInterface
     {
         return $this->repository->getPhotoUrl($photoReference, $maxWidth);
     }
+
+    public function getCoordinates(string $province, ?string $district = null): array
+    {
+        return $this->repository->getCoordinates($province, $district);
+    }
 }

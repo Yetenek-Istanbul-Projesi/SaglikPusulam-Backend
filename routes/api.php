@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\User\ProfileController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\GooglePlacesController; // Added GooglePlacesController
+use App\Http\Controllers\Api\V1\HealthSearchController; // Added HealthSearchController
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -16,6 +17,12 @@ Route::prefix('v1')->group(function () {
         Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('reset-password', [AuthController::class, 'resetPassword']);
         Route::post('verify', [AuthController::class, 'verifyRegistration']);
+    });
+
+    // Health search and filter routes
+    Route::prefix('health')->group(function () {
+        Route::get('search', [HealthSearchController::class, 'search']);
+        Route::post('filter', [HealthSearchController::class, 'filter']);
     });
 
     // Servis rotaları (Public)
