@@ -28,7 +28,7 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
             'textQuery' => $query,
             'languageCode' => 'tr',
             'regionCode' => 'TR',
-            'maxResultCount' => 5,
+            'maxResultCount' => 20,
         ];
 
         if ($pageToken) {

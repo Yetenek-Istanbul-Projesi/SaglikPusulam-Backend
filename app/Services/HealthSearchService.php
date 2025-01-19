@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 
 class HealthSearchService
 {
+    private const PAGE_SIZE = 5;
+
     public function __construct(
         private readonly GooglePlacesServiceInterface $googlePlacesService
     ) {}
@@ -23,11 +25,75 @@ class HealthSearchService
             $criteriaDTO->specialization ?? 'all'
         );
 
-        return Cache::remember(
+        $results = Cache::remember(
             $cacheKey,
             now()->addHours(1),
             fn() => $this->fetchAndEnrichResults($criteriaDTO)
         );
+
+        // Tüm sonuçları ve sayfa numarasını cache'le
+        Cache::put('last_search_results', $results, now()->addHours(1));
+        Cache::put('current_page', 0, now()->addHours(1));
+        
+        return $this->getPageResults($results);
+    }
+
+    public function getNextPage(): array
+    {
+        $results = Cache::get('last_search_results');
+        if (!$results) {
+            throw new \RuntimeException('Önce arama yapmalısınız.');
+        }
+
+        $currentPage = Cache::get('current_page', 0);
+        $totalResults = count($results['results']);
+        
+        // Eğer sonraki sayfa için yeterli sonuç yoksa current_page'i artırma
+        if (($currentPage + 1) * self::PAGE_SIZE >= $totalResults) {
+            return [
+                'results' => [],
+                'total' => $totalResults,
+                'meta' => [
+                    'has_more' => false,
+                    'current_page' => $currentPage
+                ]
+            ];
+        }
+
+        $currentPage++;
+        Cache::put('current_page', $currentPage, now()->addHours(1));
+
+        return $this->getPageResults($results);
+    }
+
+    private function getPageResults(array $results): array
+    {
+        $currentPage = Cache::get('current_page', 0);
+        $start = $currentPage * self::PAGE_SIZE;
+        $totalResults = count($results['results']);
+        
+        if ($start >= $totalResults) {
+            return [
+                'results' => [],
+                'total' => $totalResults,
+                'meta' => [
+                    'has_more' => false,
+                    'current_page' => $currentPage
+                ]
+            ];
+        }
+
+        $pageResults = array_slice($results['results'], $start, self::PAGE_SIZE);
+        $hasMore = ($start + self::PAGE_SIZE) < $totalResults;
+
+        return [
+            'results' => $pageResults,
+            'total' => $totalResults,
+            'meta' => [
+                'has_more' => $hasMore,
+                'current_page' => $currentPage
+            ]
+        ];
     }
 
     public function filterResults(HealthFilterDTO $filterDTO)

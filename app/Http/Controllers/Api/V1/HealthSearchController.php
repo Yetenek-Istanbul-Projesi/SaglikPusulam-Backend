@@ -37,4 +37,10 @@ class HealthSearchController extends Controller
         
         return new HealthSearchResource($results);
     }
+
+    public function loadMore()
+    {
+        $results = $this->healthSearchService->getNextPage();
+        return new HealthSearchResource($results);
+    }
 }
