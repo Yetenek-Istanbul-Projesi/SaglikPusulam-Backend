@@ -22,9 +22,10 @@ Route::prefix('v1')->group(function () {
 
     // Health search and filter routes
     Route::prefix('health')->group(function () {
-        Route::get('search', [HealthSearchController::class, 'search']);
-        Route::get('details', [HealthDetailsController::class, 'findSearchInResults']);
+        Route::post('search', [HealthSearchController::class, 'search']);
         Route::post('filter', [HealthSearchController::class, 'filter']);
+        Route::get('load-more', [HealthSearchController::class, 'loadMore']);
+        Route::get('details', [HealthDetailsController::class, 'findSearchInResults']);
     });
 
     // Servis rotaları (Public)
