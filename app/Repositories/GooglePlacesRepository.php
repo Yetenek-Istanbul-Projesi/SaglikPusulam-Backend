@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 class GooglePlacesRepository implements GooglePlacesRepositoryInterface
 {
     private string $apiKey;
-    private const FIELDS_MASK = 'places.id,places.displayName,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.editorialSummary,places.googleMapsLinks.directionsUri,places.photos,places.googleMapsUri,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.currentOpeningHours,places.reviews';
+    private const FIELDS_MASK = 'places.id,places.displayName,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.editorialSummary,places.googleMapsLinks.directionsUri,places.photos,places.googleMapsUri,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.currentOpeningHours,places.reviews,places.location';
 
     public function __construct()
     {
@@ -53,32 +53,36 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
     }
     public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string
     {
-        $url = sprintf(
-            'https://places.googleapis.com/v1/%s/media?maxWidthPx=%d&skipHttpRedirect=true&key=%s',
-            $photoReference,
-            $maxWidth,
-            $this->apiKey
-        );
+        return "https://places.googleapis.com/v1/places/{$photoReference}/media?key={$this->apiKey}&maxWidthPx={$maxWidth}";
+    }
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'X-Goog-FieldMask' => 'photoUri'
-        ])->get($url);
+    public function getCoordinates(string $province, ?string $district = null): array
+    {
+        $endpoint = 'https://maps.googleapis.com/maps/api/geocode/json';
+        $address = $district ? "$district, $province, Turkey" : "$province, Turkey";
 
+        $response = Http::get($endpoint, [
+            'address' => $address,
+            'key' => $this->apiKey,
+            'language' => 'tr',
+            'region' => 'tr'
+        ]);
 
-        if (!$response->successful()) {
-            throw new \RuntimeException('Photo URL çekilemedi. Hata: ' . $response->body());
+        $data = $response->json();
+
+        if ($data['status'] !== 'OK' || empty($data['results'])) {
+            Log::error('Google Geocoding API error', [
+                'status' => $data['status'] ?? 'Unknown',
+                'error_message' => $data['error_message'] ?? 'No results found',
+                'address' => $address
+            ]);
+            throw new \RuntimeException("Could not find coordinates for the given location");
         }
-        $responseData = $response->json();
-        if (empty($responseData['photoUri'])) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Photo URL bulunamadı. Yanıt: %s',
-                    json_encode($responseData, JSON_PRETTY_PRINT)
-                )
-            );
-        }
 
-        return $response->json()['photoUri'] ?? '';
+        $location = $data['results'][0]['geometry']['location'];
+        return [
+            'lat' => $location['lat'],
+            'lng' => $location['lng']
+        ];
     }
 }
