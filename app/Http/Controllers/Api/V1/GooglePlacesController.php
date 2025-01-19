@@ -52,4 +52,37 @@ class GooglePlacesController extends Controller
             ]
         ]);
     }
+    public function getPhoto(string $photoReference)
+    {
+        try {
+            if (!$photoReference) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Fotoğraf referansı bulunamadı'
+                ], 400);
+            }
+
+            $photoData = $this->googlePlacesService->fetchPhoto($photoReference);
+
+            // Raw binary response
+            return response($photoData)
+                ->withHeaders([
+                    'Content-Type' => 'image/jpeg',
+                    'Content-Length' => strlen($photoData),
+                    'Cache-Control' => 'public, max-age=86400',
+                    'X-Content-Type-Options' => 'nosniff'
+                ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Photo fetch error', [
+                'error' => $e->getMessage(),
+                'photoReference' => $photoReference
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Fotoğraf yüklenemedi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

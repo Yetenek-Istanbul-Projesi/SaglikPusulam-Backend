@@ -28,4 +28,7 @@ interface GooglePlacesServiceInterface
      * İl ve ilçe bilgisine göre koordinatları getirir
      */
     public function getCoordinates(string $province, ?string $district = null): array;
+
+    public function fetchPhoto(string $photoReference, int $maxWidth = 400): string;
+
 }

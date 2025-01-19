@@ -185,7 +185,7 @@ class HealthSearchService
             throw new \RuntimeException('Önce arama yapmalısınız.');
         }
 
-        $place = collect($lastSearchResults['places'])->firstWhere('place_id', $placeId);
+        $place = collect($lastSearchResults['places'])->firstWhere('id', $placeId);
 
         if (!$place) {
             throw new \RuntimeException('Belirtilen yer bulunamadı.');
@@ -194,8 +194,8 @@ class HealthSearchService
         // Tüm fotoğrafları işle
         $photoUrls = [];
         if (isset($place['photos']) && is_array($place['photos'])) {
-            // İlk 4 fotoğrafı al
-            $photos = array_slice($place['photos'], 0, 4);
+            // İlk fotoğraf yerine diğer 4 fotoğrafı al
+            $photos = array_slice($place['photos'], 1, 5);
             foreach ($photos as $photo) {
                 if (isset($photo['name'])) {
                     $photoUrls[] = $this->googlePlacesService->getPhotoUrl($photo['name']);
