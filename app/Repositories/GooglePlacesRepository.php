@@ -43,13 +43,30 @@ class GooglePlacesRepository implements GooglePlacesRepositoryInterface
 
     public function getPlaceDetails(string $placeId): array
     {
-        $endpoint = "https://places.googleapis.com/v1/places/{$placeId}";
+        try {
+            $endpoint = "https://places.googleapis.com/v1/places/{$placeId}";
+            
+            $response = $this->httpClient->withHeaders([
+                'X-Goog-FieldMask' => str_replace('places.', '', self::FIELDS_MASK),
+                'Accept-Language' => 'tr',
+            ])->get($endpoint);
 
-        $response = $this->httpClient->withHeaders([
-            'X-Goog-FieldMask' => self::FIELDS_MASK,
-        ])->get($endpoint);
+            if (!$response->successful()) {
+                Log::error('Google Places Details Error', [
+                    'error' => $response->body(),
+                    'place_id' => $placeId
+                ]);
+                throw new \Exception('Place details alınamadı: ' . $response->body());
+            }
 
-        return $response->json();
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::error('Google Places Details Error', [
+                'error' => $e->getMessage(),
+                'place_id' => $placeId
+            ]);
+            return ['error' => $e->getMessage()];
+        }
     }
 
     public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string

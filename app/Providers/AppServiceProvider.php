@@ -11,8 +11,12 @@ use App\Contracts\UserServiceInterface;
 use App\Contracts\VerificationServiceInterface;
 use App\Contracts\Services\ProfileServiceInterface;
 use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
+use App\Contracts\Repositories\HealthPlaceRepositoryInterface;
+use App\Contracts\Repositories\ProfileRepositoryInterface;
 use App\Repositories\GooglePlacesRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\HealthPlaceRepository;
+use App\Repositories\ProfileRepository;
 use App\Services\Auth\VerificationService;
 use App\Services\Comment\CommentService;
 use App\Services\Service\ServiceManagementService;
@@ -36,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(UserServiceInterface::class, UserService::class);
         $this->app->singleton(VerificationServiceInterface::class, VerificationService::class);
         $this->app->singleton(ProfileServiceInterface::class, ProfileService::class);
+        $this->app->singleton(ProfileRepositoryInterface::class, ProfileRepository::class);
 
         // Service Management Services
         $this->app->singleton(ServiceManagementInterface::class, ServiceManagementService::class);
@@ -47,6 +52,9 @@ class AppServiceProvider extends ServiceProvider
         // Google Places Services
         $this->app->singleton(GooglePlacesServiceInterface::class, GooglePlacesServiceV2::class);
         $this->app->singleton(GooglePlacesRepositoryInterface::class, GooglePlacesRepository::class);
+
+        // Health Profile Services & Repositories
+        $this->app->singleton(HealthPlaceRepositoryInterface::class, HealthPlaceRepository::class);
     }
 
     /**

@@ -7,11 +7,12 @@ use App\DTOs\Auth\ChangePasswordDTO;
 use App\DTOs\User\Profile\UpdateProfileDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
-use App\Http\Requests\User\UpdateProfileRequest;
-use App\Http\Requests\User\UploadProfilePhotoRequest;
+use App\Http\Requests\User\Profile\UpdateProfileRequest;
+use App\Http\Requests\User\Profile\UploadProfilePhotoRequest;
 use Illuminate\Http\JsonResponse;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
@@ -54,7 +55,7 @@ class ProfileController extends Controller
                 'status' => 'success',
                 'message' => 'Profil fotoğrafınız güncellendi',
                 'user' => $result,
-                'photo_url' => Storage::disk('public')->url($path)
+                'photo_url' => asset('storage/' . $path)
             ]);
         }
 
@@ -75,6 +76,51 @@ class ProfileController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Şifreniz başarıyla güncellendi'
+        ]);
+    }
+
+    public function getFavorites(Request $request)
+    {
+        $favorites = $this->profileService->getFavorites($request->user()->id);
+        return response()->json([
+            'status' => 'success',
+            'data' => $favorites
+        ]);
+    }
+
+    public function getComparisons(Request $request)
+    {
+        $comparisons = $this->profileService->getComparisons($request->user()->id);
+        return response()->json([
+            'status' => 'success',
+            'data' => $comparisons
+        ]);
+    }
+
+    public function toggleFavorite(Request $request, string $placeId)
+    {
+        $result = $this->profileService->toggleFavorite($request->user()->id, $placeId);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
+
+    public function toggleComparison(Request $request, string $placeId)
+    {
+        $result = $this->profileService->toggleComparison($request->user()->id, $placeId);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
+
+    public function checkLists(Request $request, string $placeId)
+    {
+        $result = $this->profileService->checkLists($request->user()->id, $placeId);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
         ]);
     }
 }

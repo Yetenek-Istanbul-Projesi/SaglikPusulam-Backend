@@ -5,8 +5,8 @@ use App\Http\Controllers\Api\V1\ServiceListController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\User\ProfileController;
 use App\Http\Controllers\Api\V1\ServiceController;
-use App\Http\Controllers\Api\V1\GooglePlacesController; // Added GooglePlacesController
-use App\Http\Controllers\Api\V1\HealthSearchController; // Added HealthSearchController
+use App\Http\Controllers\Api\V1\GooglePlacesController;
+use App\Http\Controllers\Api\V1\HealthSearchController;
 use App\Http\Controllers\Api\V1\HealthDetailsController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
         Route::post('filter', [HealthSearchController::class, 'filter']);
         Route::get('load-more', [HealthSearchController::class, 'loadMore']);
         Route::get('details', [HealthDetailsController::class, 'findSearchInResults']);
+
     });
 
     // Servis rotaları (Public)
@@ -45,8 +46,8 @@ Route::prefix('v1')->group(function () {
         Route::get('search', [GooglePlacesController::class, 'search']);
         Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']);
         Route::get('photo/{photoReference}', [GooglePlacesController::class, 'getPhoto'])
-        ->name('api.places.photo')
-        ->where('photoReference', '.*');
+            ->name('api.places.photo')
+            ->where('photoReference', '.*');
     });
 
     // Oturum gerektiren rotalar
@@ -56,27 +57,19 @@ Route::prefix('v1')->group(function () {
             Route::put('update', [ProfileController::class, 'update']); //www.saglik.com/api/v1/profile/update
             Route::post('upload-photo', [ProfileController::class, 'uploadPhoto']); //www.saglik.com/api/v1/profile/upload-photo
             Route::post('change-password', [ProfileController::class, 'changePassword']);
+            Route::get('favorites', [ProfileController::class, 'getFavorites']); //
+            Route::get('comparisons', [ProfileController::class, 'getComparisons']);
+            Route::post('favorites/{placeId}', [ProfileController::class, 'toggleFavorite']); // sa
+            Route::post('comparisons/{placeId}', [ProfileController::class, 'toggleComparison']);
+            Route::get('check-lists/{placeId}', [ProfileController::class, 'checkLists']);
+
+            // Yorum yönetimi rotaları (Auth required)
+            Route::prefix('comments')->group(function () {
+                Route::post('add', [CommentController::class, 'addComment']);
+                Route::delete('{commentId}', [CommentController::class, 'deleteComment']);
+            });
         });
 
-        // Favori listesi rotaları
-        Route::prefix('favorites')->group(function () {
-            Route::post('add', [ServiceListController::class, 'addToFavorites']);
-            Route::post('remove', [ServiceListController::class, 'removeFromFavorites']);
-            Route::get('/', [ServiceListController::class, 'getFavorites']);
-        });
-
-        // Karşılaştırma listesi rotaları
-        Route::prefix('comparisons')->group(function () {
-            Route::post('add', [ServiceListController::class, 'addToComparisons']);
-            Route::post('remove', [ServiceListController::class, 'removeFromComparisons']);
-            Route::get('/', [ServiceListController::class, 'getComparisons']);
-        });
-
-        // Yorum yönetimi rotaları (Auth required)
-        Route::prefix('comments')->group(function () {
-            Route::post('add', [CommentController::class, 'addComment']);
-            Route::delete('{commentId}', [CommentController::class, 'deleteComment']);
-        });
 
         // Admin rotaları
         Route::middleware('admin')->prefix('admin')->group(function () {
