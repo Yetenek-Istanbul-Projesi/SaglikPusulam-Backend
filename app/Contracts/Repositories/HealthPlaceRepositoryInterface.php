@@ -37,4 +37,6 @@ interface HealthPlaceRepositoryInterface
      * Get multiple places by their IDs
      */
     public function getByPlaceIds(array $placeIds): Collection;
+
+    public function getMostFavoritedPlaces(int $limit = 5): Collection;
 }

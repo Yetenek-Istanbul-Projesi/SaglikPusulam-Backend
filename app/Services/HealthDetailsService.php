@@ -46,5 +46,32 @@ class HealthDetailsService implements HealthDetailsServiceInterface
         ]);
     }
 
-    
+    /**
+     * En çok favoriye alınan ilk 5 sağlık hizmetini getir
+     */
+    public function getMostFavoritedPlaces(): array
+    {
+        $mostFavorited = $this->healthPlaceRepository->getMostFavoritedPlaces(5);
+        
+        return $mostFavorited->map(function ($place) {
+            $placeData = $place->place_data;
+            
+            // Ana fotoğraf URL'sini ekle
+            $mainPhotoUrl = null;
+            if (isset($placeData['photos'][0]['name'])) {
+                $mainPhotoUrl = $this->googlePlacesService->getPhotoUrl($placeData['photos'][0]['name']);
+            }
+            
+            return [
+                'id' => $place->id,
+                'place_id' => $place->google_place_id,
+                'name' => $placeData['displayName']['text'] ?? 'Bilinmeyen Yer',
+                'address' => $placeData['formattedAddress'] ?? '',
+                'rating' => $placeData['rating'] ?? 0,
+                'favorite_count' => $place->favorite_count,
+                'main_photo_url' => $mainPhotoUrl,
+                'types' => $placeData['types'] ?? []
+            ];
+        })->toArray();
+    }
 }

@@ -12,4 +12,9 @@ interface HealthDetailsServiceInterface
      * @throws \RuntimeException Hizmet bulunamadığında
      */
     public function findPlaceDetails(string $placeId): array;
+
+    /**
+     * En çok favoriye alınan ilk 5 sağlık hizmetini getir
+     */
+    public function getMostFavoritedPlaces(): array;
 }

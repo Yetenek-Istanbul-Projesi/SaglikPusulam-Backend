@@ -95,4 +95,15 @@ class HealthPlaceRepository implements HealthPlaceRepositoryInterface
             );
         })->filter();
     }
+
+    /**
+     * En çok favoriye alınan yerleri getir
+     */
+    public function getMostFavoritedPlaces(int $limit = 5): Collection
+    {
+        return HealthPlace::withCount('favorites')
+            ->orderBy('favorites_count', 'desc')
+            ->limit($limit)
+            ->get();
+    }
 }
