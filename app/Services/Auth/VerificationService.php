@@ -8,9 +8,8 @@ use App\Models\PendingUser;
 use App\Models\User;
 use App\Notifications\EmailVerificationNotification;
 use App\Notifications\PhoneVerificationNotification;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class VerificationService implements VerificationServiceInterface
 {
@@ -27,36 +26,28 @@ class VerificationService implements VerificationServiceInterface
     {
         try {
             $code = $this->generateVerificationCode();
-            $key = self::EMAIL_CODE_PREFIX . $email;
-
-            Cache::put($key, $code, now()->addMinutes(self::CODE_EXPIRY_MINUTES));
-
-            $user = User::where('email', $email)->first() ?? 
-                   PendingUser::where('email', $email)->first();
+            $user = PendingUser::where('email', $email)->first();
 
             if (!$user) {
                 throw new \Exception('E-posta adresi bulunamadı.');
             }
 
-            // Eğer PendingUser ise verification_token'ı al
-            $verificationToken = $user instanceof PendingUser ? $user->verification_token : null;
-
-            if (!$verificationToken) {
-                throw new \Exception('Geçersiz kullanıcı durumu.');
-            }
+            // Kodları güncelle
+            $user->update([
+                'email_verification_code' => $code,
+                'codes_expire_at' => now()->addMinutes(self::CODE_EXPIRY_MINUTES)
+            ]);
 
             Log::info("Email verification code for {$email}: {$code}");
             
             try {
-                $notification = new EmailVerificationNotification($code, $verificationToken);
+                $notification = new EmailVerificationNotification($code, $user->verification_token);
                 $user->notify($notification);
                 
                 return VerificationResponseDTO::success(
                     'Doğrulama kodu e-posta adresinize gönderildi.'
                 );
             } catch (\Exception $e) {
-                // Gönderim başarısız olursa cache'i temizle
-                Cache::forget($key);
                 Log::error("Email verification error: " . $e->getMessage());
                 throw new \Exception('E-posta doğrulama kodu gönderilemedi: ' . $e->getMessage());
             }
@@ -74,36 +65,28 @@ class VerificationService implements VerificationServiceInterface
     {
         try {
             $code = $this->generateVerificationCode();
-            $key = self::PHONE_CODE_PREFIX . $phone;
-
-            Cache::put($key, $code, now()->addMinutes(self::CODE_EXPIRY_MINUTES));
-
-            $user = User::where('phone', $phone)->first() ?? 
-                   PendingUser::where('phone', $phone)->first();
+            $user = PendingUser::where('phone', $phone)->first();
 
             if (!$user) {
                 throw new \Exception('Telefon numarası bulunamadı.');
             }
 
-            // Eğer PendingUser ise verification_token'ı al
-            $verificationToken = $user instanceof PendingUser ? $user->verification_token : null;
-
-            if (!$verificationToken) {
-                throw new \Exception('Geçersiz kullanıcı durumu.');
-            }
+            // Kodları güncelle
+            $user->update([
+                'phone_verification_code' => $code,
+                'codes_expire_at' => now()->addMinutes(self::CODE_EXPIRY_MINUTES)
+            ]);
 
             Log::info("Phone verification code for {$phone}: {$code}");
             
             try {
-                $notification = new PhoneVerificationNotification($code, $verificationToken);
+                $notification = new PhoneVerificationNotification($code, $user->verification_token);
                 $user->notify($notification);
                 
                 return VerificationResponseDTO::success(
                     'Doğrulama kodu telefonunuza gönderildi.'
                 );
             } catch (\Exception $e) {
-                // Gönderim başarısız olursa cache'i temizle
-                Cache::forget($key);
                 Log::error("Phone verification error: " . $e->getMessage());
                 throw new \Exception('SMS doğrulama kodu gönderilemedi: ' . $e->getMessage());
             }
@@ -119,50 +102,50 @@ class VerificationService implements VerificationServiceInterface
 
     public function verifyEmail(string $email, string $code): bool
     {
-        $key = self::EMAIL_CODE_PREFIX . $email;
-        $storedCode = Cache::get($key);
+        $user = PendingUser::where('email', $email)
+            ->where('codes_expire_at', '>', now())
+            ->first();
         
         Log::info("Verifying email code", [
             'email' => $email,
             'provided_code' => $code,
-            'stored_code' => $storedCode,
-            'stored_code_type' => gettype($storedCode)
+            'stored_code' => $user?->email_verification_code,
+            'expired' => $user?->codes_expire_at < now()
         ]);
 
-        if ($storedCode && (string)$storedCode === (string)$code) {
-            Cache::forget($key);
+        if ($user && $user->email_verification_code === $code) {
             Log::info("Email verified successfully", ['email' => $email]);
             return true;
         }
 
         Log::warning("Email verification failed", [
             'email' => $email,
-            'reason' => !$storedCode ? 'No stored code found' : 'Code mismatch'
+            'reason' => !$user ? 'No user found or code expired' : 'Code mismatch'
         ]);
         return false;
     }
 
     public function verifyPhone(string $phone, string $code): bool
     {
-        $key = self::PHONE_CODE_PREFIX . $phone;
-        $storedCode = Cache::get($key);
+        $user = PendingUser::where('phone', $phone)
+            ->where('codes_expire_at', '>', now())
+            ->first();
         
         Log::info("Verifying phone code", [
             'phone' => $phone,
             'provided_code' => $code,
-            'stored_code' => $storedCode,
-            'stored_code_type' => gettype($storedCode)
+            'stored_code' => $user?->phone_verification_code,
+            'expired' => $user?->codes_expire_at < now()
         ]);
 
-        if ($storedCode && (string)$storedCode === (string)$code) {
-            Cache::forget($key);
+        if ($user && $user->phone_verification_code === $code) {
             Log::info("Phone verified successfully", ['phone' => $phone]);
             return true;
         }
 
         Log::warning("Phone verification failed", [
             'phone' => $phone,
-            'reason' => !$storedCode ? 'No stored code found' : 'Code mismatch'
+            'reason' => !$user ? 'No user found or code expired' : 'Code mismatch'
         ]);
         return false;
     }

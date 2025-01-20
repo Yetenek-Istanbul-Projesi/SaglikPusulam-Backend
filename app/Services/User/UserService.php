@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\PendingUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserService implements UserServiceInterface
 {
@@ -120,13 +121,13 @@ class UserService implements UserServiceInterface
             $credentials['phone'] = $loginDTO->phone;
         }
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (!$token = JWTAuth::attempt($credentials)) {
             throw ValidationException::withMessages([
                 'login' => ['Geçersiz giriş bilgileri.']
             ]);
         }
 
-        $user = auth()->user();
+        $user = JWTAuth::user();
 
         return [
             'user' => $user,
