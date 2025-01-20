@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\Service\ServiceManagementService;
 use App\Contracts\Services\GooglePlacesServiceInterface;
 use App\DTOs\Google\HealthSearchCriteriaDTO;
 use Illuminate\Http\Request;
@@ -13,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 class GooglePlacesController extends Controller
 {
     public function __construct(
-        private readonly ServiceManagementService $serviceManagementService,
         private readonly GooglePlacesServiceInterface $googlePlacesService
     ) {}
 

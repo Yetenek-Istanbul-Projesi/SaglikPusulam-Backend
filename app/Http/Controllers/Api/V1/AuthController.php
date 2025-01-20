@@ -15,8 +15,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Services\Auth\PasswordResetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {  
@@ -77,7 +77,7 @@ class AuthController extends Controller
                 $validated['phone_code']
             );
 
-            $token = auth()->login($user);
+            $token = JWTAuth::fromUser($user);
 
             return response()->json([
                 'status' => 'success',
