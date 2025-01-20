@@ -10,6 +10,7 @@ use App\Notifications\EmailVerificationNotification;
 use App\Notifications\PhoneVerificationNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 
 class VerificationService implements VerificationServiceInterface
 {
@@ -190,7 +191,7 @@ class VerificationService implements VerificationServiceInterface
         ];
 
         Log::info('Creating new user with data', [
-            'user_data' => array_except($userData, ['password'])
+            'user_data' => Arr::except($userData, ['password'])
         ]);
 
         $user = User::create($userData);
