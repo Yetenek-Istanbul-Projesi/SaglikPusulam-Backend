@@ -14,6 +14,7 @@ use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
 use App\Contracts\Repositories\HealthPlaceRepositoryInterface;
 use App\Contracts\Repositories\ProfileRepositoryInterface;
 use App\Contracts\Services\HealthDetailsServiceInterface;
+use App\Contracts\Services\ReviewServiceInterface;
 use App\Repositories\GooglePlacesRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\HealthPlaceRepository;
@@ -26,6 +27,7 @@ use App\Services\User\UserService;
 use App\Services\User\ProfileService;
 use App\Services\Google\GooglePlacesServiceV2;
 use App\Services\HealthDetailsService;
+use App\Services\ReviewService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,12 +46,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProfileServiceInterface::class, ProfileService::class);
         $this->app->singleton(ProfileRepositoryInterface::class, ProfileRepository::class);
 
-        // Service Management Services
-        $this->app->singleton(ServiceManagementInterface::class, ServiceManagementService::class);
-        $this->app->singleton(ServiceListServiceInterface::class, ServiceListService::class);
-
-        // Comment Services
-        $this->app->singleton(CommentServiceInterface::class, CommentService::class);
+       
 
         // Google Places Services
         $this->app->singleton(GooglePlacesServiceInterface::class, GooglePlacesServiceV2::class);
@@ -58,6 +55,14 @@ class AppServiceProvider extends ServiceProvider
         // Health Profile Services & Repositories
         $this->app->singleton(HealthPlaceRepositoryInterface::class, HealthPlaceRepository::class);
         $this->app->singleton(HealthDetailsServiceInterface::class, HealthDetailsService::class);
+
+        // Review Service
+        $this->app->singleton(ReviewServiceInterface::class, function ($app) {
+            return new ReviewService(
+                $app->make(GooglePlacesServiceInterface::class),
+                $app->make(HealthPlaceRepositoryInterface::class)
+            );
+        });
     }
 
     /**
