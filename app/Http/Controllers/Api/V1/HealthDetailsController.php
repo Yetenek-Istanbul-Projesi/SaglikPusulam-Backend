@@ -216,4 +216,24 @@ class HealthDetailsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * En çok favoriye alınan sağlık hizmetlerini getir
+     */
+    public function getMostFavorited(): JsonResponse
+    {
+        try {
+            $mostFavorited = $this->healthDetailsService->getMostFavoritedPlaces();
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => $mostFavorited
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

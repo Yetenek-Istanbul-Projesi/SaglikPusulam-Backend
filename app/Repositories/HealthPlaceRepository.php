@@ -95,4 +95,34 @@ class HealthPlaceRepository implements HealthPlaceRepositoryInterface
             );
         })->filter();
     }
+
+    /**
+     * En çok favoriye alınan yerleri getir
+     */
+    public function getMostFavoritedPlaces(int $limit = 5): Collection
+    {
+        return HealthPlace::withCount('favorites')
+            ->orderBy('favorites_count', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function deleteIfUnused(string $placeId): void
+    {
+        $place = $this->findByPlaceId($placeId);
+        
+        if (!$place) {
+            return;
+        }
+
+        // Favori, karşılaştırma veya yorumlarda var mı kontrol et
+        $hasReferences = $place->userFavorites()->exists() || 
+                        $place->userComparisons()->exists() ||
+                        $place->reviews()->exists();
+
+        if (!$hasReferences) {
+            $place->delete();
+            Cache::forget("place_{$placeId}");
+        }
+    }
 }

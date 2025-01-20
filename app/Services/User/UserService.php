@@ -12,7 +12,9 @@ use App\DTOs\User\VerificationResponseDTO;
 use App\Models\User;
 use App\Models\PendingUser;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserService implements UserServiceInterface
 {
@@ -81,27 +83,53 @@ class UserService implements UserServiceInterface
 
     public function verifyRegistration(string $verificationToken, string $emailCode, string $phoneCode): ?User
     {
+        Log::info('Starting registration verification', [
+            'verification_token' => $verificationToken,
+            'email_code' => $emailCode,
+            'phone_code' => $phoneCode
+        ]);
+
         $pendingUser = PendingUser::where('verification_token', $verificationToken)
             ->first();
 
         if (!$pendingUser) {
+            Log::warning('Invalid verification token or pending user not found');
             throw ValidationException::withMessages([
                 'verification' => ['Geçersiz veya süresi dolmuş doğrulama token\'ı.']
             ]);
         }
 
+        Log::info('Found pending user', [
+            'email' => $pendingUser->email,
+            'phone' => $pendingUser->phone
+        ]);
+
         // E-posta ve telefon kodlarını doğrula
         $isEmailVerified = $this->verificationService->verifyEmail($pendingUser->email, $emailCode);
         $isPhoneVerified = $this->verificationService->verifyPhone($pendingUser->phone, $phoneCode);
 
+        Log::info('Verification results', [
+            'email_verified' => $isEmailVerified,
+            'phone_verified' => $isPhoneVerified
+        ]);
+
         if (!$isEmailVerified || !$isPhoneVerified) {
+            Log::warning('Invalid verification codes');
             throw ValidationException::withMessages([
                 'verification' => ['Geçersiz doğrulama kodları.']
             ]);
         }
 
         // Kullanıcıyı oluştur
-        return $this->verificationService->verifyAndCreateUser($verificationToken);
+        $user = $this->verificationService->verifyAndCreateUser($verificationToken);
+
+        Log::info('User created after verification', [
+            'user_id' => $user?->id,
+            'email_verified_at' => $user?->email_verified_at,
+            'phone_verified_at' => $user?->phone_verified_at
+        ]);
+
+        return $user;
     }
 
     public function login(LoginDTO $loginDTO): array
@@ -120,13 +148,13 @@ class UserService implements UserServiceInterface
             $credentials['phone'] = $loginDTO->phone;
         }
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (!$token = JWTAuth::attempt($credentials)) {
             throw ValidationException::withMessages([
                 'login' => ['Geçersiz giriş bilgileri.']
             ]);
         }
 
-        $user = auth()->user();
+        $user = JWTAuth::user();
 
         return [
             'user' => $user,

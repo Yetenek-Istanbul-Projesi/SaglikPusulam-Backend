@@ -28,4 +28,9 @@ class HealthPlace extends Model
     {
         return $this->hasMany(PlaceReview::class);
     }
+
+    public function userFavorites(): HasMany
+    {
+        return $this->hasMany(UserFavorite::class, 'google_place_id', 'google_place_id');
+    }
 }

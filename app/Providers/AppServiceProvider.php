@@ -43,10 +43,16 @@ class AppServiceProvider extends ServiceProvider
         // Auth & User Services
         $this->app->singleton(UserServiceInterface::class, UserService::class);
         $this->app->singleton(VerificationServiceInterface::class, VerificationService::class);
-        $this->app->singleton(ProfileServiceInterface::class, ProfileService::class);
-        $this->app->singleton(ProfileRepositoryInterface::class, ProfileRepository::class);
 
-       
+        // Profile Services & Repositories
+        $this->app->singleton(ProfileRepositoryInterface::class, ProfileRepository::class);
+        $this->app->singleton(ProfileServiceInterface::class, function ($app) {
+            return new ProfileService(
+                $app->make(ProfileRepositoryInterface::class),
+                $app->make(GooglePlacesServiceInterface::class),
+                $app->make(HealthPlaceRepositoryInterface::class)
+            );
+        });
 
         // Google Places Services
         $this->app->singleton(GooglePlacesServiceInterface::class, GooglePlacesServiceV2::class);
