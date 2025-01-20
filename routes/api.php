@@ -25,7 +25,8 @@ Route::prefix('v1')->group(function () {
         Route::post('search', [HealthSearchController::class, 'search']);
         Route::post('filter', [HealthSearchController::class, 'filter']);
         Route::get('load-more', [HealthSearchController::class, 'loadMore']);
-        Route::get('details', [HealthDetailsController::class, 'findSearchInResults']);
+        Route::get('details/search', [HealthDetailsController::class, 'findSearchInResults']);
+        Route::get('details/database', [HealthDetailsController::class, 'findInDatabase']);
 
     });
 

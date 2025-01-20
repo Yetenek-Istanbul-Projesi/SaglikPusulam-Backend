@@ -6,9 +6,12 @@ use App\DTOs\Google\HealthSearchCriteriaDTO;
 use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
 use App\Contracts\Services\GooglePlacesServiceInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class GooglePlacesServiceV2 implements GooglePlacesServiceInterface
 {
+    private const PHOTO_CACHE_TTL = 3600; // 1 saat
+
     private GooglePlacesRepositoryInterface $repository;
 
     public function __construct(GooglePlacesRepositoryInterface $repository)
@@ -34,7 +37,13 @@ class GooglePlacesServiceV2 implements GooglePlacesServiceInterface
 
     public function getPhotoUrl(string $photoReference, int $maxWidth = 400): string
     {
-        return $this->repository->getPhotoUrl($photoReference, $maxWidth);
+        $cacheKey = sprintf('photo_url:%s:%d', $photoReference, $maxWidth);
+        
+        return Cache::remember(
+            $cacheKey,
+            self::PHOTO_CACHE_TTL,
+            fn() => $this->repository->getPhotoUrl($photoReference, $maxWidth)
+        );
     }
 
     public function fetchPhoto(string $photoReference, int $maxWidth = 400): string
