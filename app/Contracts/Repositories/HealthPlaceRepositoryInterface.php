@@ -39,4 +39,9 @@ interface HealthPlaceRepositoryInterface
     public function getByPlaceIds(array $placeIds): Collection;
 
     public function getMostFavoritedPlaces(int $limit = 5): Collection;
+
+    /**
+     * Delete place if it's not in favorites or comparisons
+     */
+    public function deleteIfUnused(string $placeId): void;
 }

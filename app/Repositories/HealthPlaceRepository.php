@@ -106,4 +106,23 @@ class HealthPlaceRepository implements HealthPlaceRepositoryInterface
             ->limit($limit)
             ->get();
     }
+
+    public function deleteIfUnused(string $placeId): void
+    {
+        $place = $this->findByPlaceId($placeId);
+        
+        if (!$place) {
+            return;
+        }
+
+        // Favori, karşılaştırma veya yorumlarda var mı kontrol et
+        $hasReferences = $place->userFavorites()->exists() || 
+                        $place->userComparisons()->exists() ||
+                        $place->reviews()->exists();
+
+        if (!$hasReferences) {
+            $place->delete();
+            Cache::forget("place_{$placeId}");
+        }
+    }
 }
