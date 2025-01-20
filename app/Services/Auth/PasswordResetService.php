@@ -20,6 +20,7 @@ class PasswordResetService
         }
 
         $token = Str::random(64);
+        \Log::info('Password reset token: ' . $token);
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $user->email],
             [

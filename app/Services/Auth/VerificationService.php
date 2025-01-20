@@ -158,15 +158,26 @@ class VerificationService implements VerificationServiceInterface
 
     public function verifyAndCreateUser(string $verificationToken): ?User
     {
+        Log::info('Starting user creation from pending user', [
+            'verification_token' => $verificationToken
+        ]);
+
         $pendingUser = PendingUser::where('verification_token', $verificationToken)
             ->where('created_at', '>=', now()->subDay())
             ->first();
 
         if (!$pendingUser) {
+            Log::warning('Pending user not found or expired');
             return null;
         }
 
-        $user = User::create([
+        Log::info('Found pending user for creation', [
+            'email' => $pendingUser->email,
+            'phone' => $pendingUser->phone
+        ]);
+
+        $now = now();
+        $userData = [
             'first_name' => $pendingUser->first_name,
             'last_name' => $pendingUser->last_name,
             'email' => $pendingUser->email,
@@ -174,8 +185,20 @@ class VerificationService implements VerificationServiceInterface
             'password' => $pendingUser->password,
             'terms_accepted' => $pendingUser->terms_accepted,
             'privacy_accepted' => $pendingUser->privacy_accepted,
-            'email_verified_at' => now(),
-            'phone_verified_at' => now()
+            'email_verified_at' => $now,
+            'phone_verified_at' => $now
+        ];
+
+        Log::info('Creating new user with data', [
+            'user_data' => array_except($userData, ['password'])
+        ]);
+
+        $user = User::create($userData);
+
+        Log::info('User created successfully', [
+            'user_id' => $user->id,
+            'email_verified_at' => $user->email_verified_at,
+            'phone_verified_at' => $user->phone_verified_at
         ]);
 
         $pendingUser->delete();

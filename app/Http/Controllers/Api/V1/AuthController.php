@@ -148,6 +148,8 @@ class AuthController extends Controller
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
+        \Log::info('Reset password request data:', $request->all());
+        
         $this->passwordResetService->reset(
             ResetPasswordDTO::fromRequest($request->validated())
         );
