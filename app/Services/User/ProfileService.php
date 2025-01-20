@@ -5,55 +5,83 @@ namespace App\Services\User;
 use App\Contracts\Services\ProfileServiceInterface;
 use App\DTOs\Auth\ChangePasswordDTO;
 use App\DTOs\User\Profile\UpdateProfileDTO;
+use App\DTOs\Profile\UserListDTO;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use App\Contracts\Repositories\ProfileRepositoryInterface;
 
 class ProfileService implements ProfileServiceInterface
 {
+    public function __construct(
+        private readonly ProfileRepositoryInterface $repository
+    ) {}
+
     public function updateProfile(User $user, UpdateProfileDTO $dto): User
     {
-        $userData = array_filter([
-            'first_name' => $dto->first_name,
-            'last_name' => $dto->last_name,
-            'email' => $dto->email,
-            'phone' => $dto->phone,
-            'address' => $dto->address,
-        ], fn($value) => !is_null($value));
-
-        if ($dto->photo) {
-            $userData['photo'] = $this->uploadPhoto($user, $dto->photo);
-        }
-
-        $user->update($userData);
-        return $user->fresh();
+        return $this->repository->updateProfile($user, $dto);
     }
 
     public function uploadPhoto(User $user, $photo): string
     {
-        try {
-            if (is_string($photo)) {
-                return $photo;
-            }
-
-            $path = $photo->store('avatars', 'public');
-            
-            if ($user->photo && $user->photo !== 'avatars/default.png') {
-                Storage::disk('public')->delete($user->photo);
-            }
-
-            return $path;
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Fotoğraf yüklenirken bir hata oluştu: ' . $e->getMessage());
-        }
+        return $this->repository->uploadPhoto($user, $photo);
     }
 
     public function changePassword(User $user, ChangePasswordDTO $dto): bool
     {
-        $user->update([
-            'password' => Hash::make($dto->new_password)
-        ]);
+        return $this->repository->changePassword($user, $dto);
+    }
 
-        return true;
+    public function getFavorites(int $userId): array
+    {
+        $favorites = $this->repository->getFavorites($userId)->toArray();
+        return [
+            'places' => $favorites,
+            'total' => count($favorites),
+            'message' => 'Favori hizmetleriniz başarıyla getirildi'
+        ];
+    }
+
+    public function getComparisons(int $userId): array
+    {
+        $comparisons = $this->repository->getComparisons($userId)->toArray();
+        return [
+            'places' => $comparisons,
+            'total' => count($comparisons),
+            'message' => 'Karşılaştırma listeniz başarıyla getirildi'
+        ];
+    }
+
+    public function toggleFavorite(int $userId, string $placeId): array
+    {
+        $dto = new UserListDTO($userId, $placeId);
+        $result = $this->repository->toggleFavorite($dto);
+        return [
+            'status' => $result ? 'eklendi' : 'silindi',
+            'message' => $result 
+                ? 'Hizmet favorilerinize eklendi' 
+                : 'Hizmet favorilerinizden çıkarıldı'
+        ];
+    }
+
+    public function toggleComparison(int $userId, string $placeId): array
+    {
+        $dto = new UserListDTO($userId, $placeId);
+        $result = $this->repository->toggleComparison($dto);
+        return [
+            'status' => $result ? 'eklendi' : 'silindi',
+            'message' => $result 
+                ? 'Hizmet karşılaştırma listenize eklendi' 
+                : 'Hizmet karşılaştırma listenizden çıkarıldı'
+        ];
+    }
+
+    public function checkLists(int $userId, string $placeId): array
+    {
+        $dto = new UserListDTO($userId, $placeId);
+        $result = $this->repository->checkUserLists($dto);
+        return [
+            'isFavorite' => $result['is_favorite'],
+            'isInComparison' => $result['is_in_comparison'],
+            'message' => 'Hizmet durumu başarıyla kontrol edildi'
+        ];
     }
 }
