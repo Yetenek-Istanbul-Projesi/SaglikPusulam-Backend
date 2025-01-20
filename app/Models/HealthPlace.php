@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HealthPlace extends Model
 {
@@ -18,13 +19,13 @@ class HealthPlace extends Model
         'last_updated' => 'datetime'
     ];
 
-    public function userFavorites(): HasMany
-    {
-        return $this->hasMany(UserFavorite::class, 'google_place_id', 'google_place_id');
-    }
-
     public function userComparisons(): HasMany
     {
         return $this->hasMany(UserComparison::class, 'google_place_id', 'google_place_id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(PlaceReview::class);
     }
 }

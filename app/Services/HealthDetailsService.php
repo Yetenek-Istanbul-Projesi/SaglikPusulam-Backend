@@ -45,4 +45,6 @@ class HealthDetailsService implements HealthDetailsServiceInterface
             'photo_urls' => $photoUrls
         ]);
     }
+
+    
 }

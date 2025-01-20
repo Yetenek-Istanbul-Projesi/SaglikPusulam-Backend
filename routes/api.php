@@ -28,19 +28,16 @@ Route::prefix('v1')->group(function () {
         Route::get('details/search', [HealthDetailsController::class, 'findSearchInResults']);
         Route::get('details/database', [HealthDetailsController::class, 'findInDatabase']);
 
+        Route::prefix('details')->group(function () {
+            Route::get('{placeId}/reviews', [HealthDetailsController::class, 'getReviews']);
+            Route::middleware('jwt.auth')->group(function () {
+                Route::post('{placeId}/add-review', [HealthDetailsController::class, 'addReview']); // saglik.com/api/v1/health/details/{placeId}/add-review
+                Route::delete('{placeId}/delete-review', [HealthDetailsController::class, 'deleteReview']);
+                Route::put('{placeId}/update-review', [HealthDetailsController::class, 'updateReview']);
+            });
+        });
     });
 
-    // Servis rotaları (Public)
-    Route::prefix('services')->group(function () {
-        Route::get('/', [ServiceController::class, 'index']);
-        Route::get('/{service}', [ServiceController::class, 'show']);
-        Route::get('/{service}/comments', [ServiceController::class, 'comments']);
-    });
-
-    // Yorum rotaları (Public)
-    Route::prefix('comments')->group(function () {
-        Route::get('/service/{serviceId}', [CommentController::class, 'getServiceComments']);
-    });
 
     // Google Places API routes
     Route::prefix('places')->group(function () {
@@ -52,7 +49,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Oturum gerektiren rotalar
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware('jwt.auth')->group(function () {
         // Profil rotaları
         Route::prefix('profile')->group(function () {
             Route::put('update', [ProfileController::class, 'update']); //www.saglik.com/api/v1/profile/update
@@ -63,21 +60,7 @@ Route::prefix('v1')->group(function () {
             Route::post('favorites/{placeId}', [ProfileController::class, 'toggleFavorite']); // sa
             Route::post('comparisons/{placeId}', [ProfileController::class, 'toggleComparison']);
             Route::get('check-lists/{placeId}', [ProfileController::class, 'checkLists']);
-
-            // Yorum yönetimi rotaları (Auth required)
-            Route::prefix('comments')->group(function () {
-                Route::post('add', [CommentController::class, 'addComment']);
-                Route::delete('{commentId}', [CommentController::class, 'deleteComment']);
-            });
-        });
-
-
-        // Admin rotaları
-        Route::middleware('admin')->prefix('admin')->group(function () {
-            Route::prefix('comments')->group(function () {
-                Route::get('pending', [CommentController::class, 'getPendingComments']);
-                Route::put('{commentId}/status', [CommentController::class, 'updateCommentStatus']);
-            });
+            Route::get('reviews', [HealthDetailsController::class, 'getUserReviews']); // saglik.com/api/v1/health/details/user/reviews
         });
     });
 });
