@@ -13,6 +13,7 @@ use App\Contracts\Services\ProfileServiceInterface;
 use App\Contracts\Repositories\GooglePlacesRepositoryInterface;
 use App\Contracts\Repositories\HealthPlaceRepositoryInterface;
 use App\Contracts\Repositories\ProfileRepositoryInterface;
+use App\Contracts\Services\HealthDetailsServiceInterface;
 use App\Repositories\GooglePlacesRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\HealthPlaceRepository;
@@ -24,6 +25,7 @@ use App\Services\Service\ServiceListService;
 use App\Services\User\UserService;
 use App\Services\User\ProfileService;
 use App\Services\Google\GooglePlacesServiceV2;
+use App\Services\HealthDetailsService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -55,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Health Profile Services & Repositories
         $this->app->singleton(HealthPlaceRepositoryInterface::class, HealthPlaceRepository::class);
+        $this->app->singleton(HealthDetailsServiceInterface::class, HealthDetailsService::class);
     }
 
     /**
