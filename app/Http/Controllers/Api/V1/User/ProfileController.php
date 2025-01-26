@@ -14,12 +14,18 @@ use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\Request;
 
+/**
+ * Profil işlemleri
+ */
 class ProfileController extends Controller
 {
     public function __construct(
         private readonly ProfileServiceInterface $profileService
     ) {}
 
+    /**
+     * Profil bilgilerini güncelle
+     */
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -35,6 +41,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Profil fotoğrafı yükle
+     */
     public function uploadPhoto(UploadProfilePhotoRequest $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -65,6 +74,9 @@ class ProfileController extends Controller
         ], 400);
     }
 
+    /**
+     * Şifre değiştir
+     */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -79,6 +91,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Favorileri getir
+     */
     public function getFavorites(Request $request)
     {
         $favorites = $this->profileService->getFavorites($request->user()->id);
@@ -88,6 +103,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Karşılaştırmaları getir
+     */
     public function getComparisons(Request $request)
     {
         $comparisons = $this->profileService->getComparisons($request->user()->id);
@@ -97,6 +115,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Favorilere ekle/çıkar
+     */
     public function toggleFavorite(Request $request, string $placeId)
     {
         $result = $this->profileService->toggleFavorite($request->user()->id, $placeId);
@@ -106,6 +127,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Karşılaştırmalara ekle/çıkar
+     */
     public function toggleComparison(Request $request, string $placeId)
     {
         $result = $this->profileService->toggleComparison($request->user()->id, $placeId);
@@ -115,6 +139,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Listeleri kontrol et
+     */
     public function checkLists(Request $request, string $placeId)
     {
         $result = $this->profileService->checkLists($request->user()->id, $placeId);

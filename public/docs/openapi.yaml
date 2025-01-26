@@ -1,0 +1,843 @@
+openapi: 3.0.3
+info:
+  title: 'Sağlık Pusulam API'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost:8000'
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: 'Kullanıcı kaydı'
+      operationId: kullancKayd
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: kycafsfphglipjp
+                  nullable: false
+                last_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: arhkgxiaoxde
+                  nullable: false
+                email:
+                  type: string
+                  description: 'Must be a valid email address. Must not be greater than 255 characters.'
+                  example: ali04@example.org
+                  nullable: false
+                phone:
+                  type: string
+                  description: 'Must not be greater than 20 characters.'
+                  example: oayc
+                  nullable: false
+                password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: 'Q(<Rv0\%K?xfN81'
+                  nullable: false
+                terms_accepted:
+                  type: boolean
+                  description: 'Must be accepted.'
+                  example: true
+                  nullable: false
+                privacy_accepted:
+                  type: boolean
+                  description: 'Must be accepted.'
+                  example: true
+                  nullable: false
+              required:
+                - first_name
+                - last_name
+                - email
+                - phone
+                - password
+                - terms_accepted
+                - privacy_accepted
+      security: []
+  /api/v1/auth/login:
+    post:
+      summary: 'Kullanıcı girişi'
+      operationId: kullancGirii
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address. This field is required when <code>phone</code> is not present.'
+                  example: austen54@example.net
+                  nullable: true
+                phone:
+                  type: string
+                  description: 'This field is required when <code>email</code> is not present.'
+                  example: consequatur
+                  nullable: true
+                password:
+                  type: string
+                  description: ''
+                  example: "F188;'7@1"
+                  nullable: false
+              required:
+                - password
+      security: []
+  /api/v1/auth/forgot-password:
+    post:
+      summary: 'Şifre sıfırlama bağlantısı gönder'
+      operationId: ifreSfrlamaBalantsGnder
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address. The <code>email</code> of an existing record in the users table.'
+                  example: kessler.omer@example.net
+                  nullable: false
+              required:
+                - email
+      security: []
+  /api/v1/auth/reset-password:
+    post:
+      summary: 'Şifre sıfırlama'
+      operationId: ifreSfrlama
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: ''
+                  example: excepturi
+                  nullable: false
+                email:
+                  type: string
+                  description: 'Must be a valid email address. The <code>email</code> of an existing record in the users table.'
+                  example: becker.john@example.com
+                  nullable: false
+                password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: 'e+jwC%R&>g'
+                  nullable: false
+                password_confirmation:
+                  type: string
+                  description: ''
+                  example: suscipit
+                  nullable: false
+              required:
+                - token
+                - email
+                - password
+                - password_confirmation
+      security: []
+  /api/v1/auth/verify:
+    post:
+      summary: 'Kullanıcı kaydı doğrulama'
+      operationId: kullancKaydDorulama
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verification_token:
+                  type: string
+                  description: ''
+                  example: consequatur
+                  nullable: false
+                email_code:
+                  type: string
+                  description: 'Must be 6 characters.'
+                  example: wdjnvu
+                  nullable: false
+                phone_code:
+                  type: string
+                  description: 'Must be 6 characters.'
+                  example: hnhihb
+                  nullable: false
+              required:
+                - verification_token
+                - email_code
+                - phone_code
+      security: []
+  /api/v1/health/most-favorited:
+    get:
+      summary: 'En çok favoriye alınan sağlık hizmetlerini getir'
+      operationId: enokFavoriyeAlnanSalkHizmetleriniGetir
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Call to undefined method App\Models\HealthPlace::favorites()'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Call to undefined method App\Models\HealthPlace::favorites()'
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/health/search:
+    post:
+      summary: 'Sağlık hizmeti arama'
+      operationId: salkHizmetiArama
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                province:
+                  type: string
+                  description: ''
+                  example: minus
+                  nullable: false
+                district:
+                  type: string
+                  description: ''
+                  example: non
+                  nullable: true
+                facility_type:
+                  type: string
+                  description: ''
+                  example: voluptas
+                  nullable: true
+                specialization:
+                  type: string
+                  description: ''
+                  example: velit
+                  nullable: true
+              required:
+                - province
+      security: []
+  /api/v1/health/filter:
+    post:
+      summary: 'Sağlık hizmeti filtreleme'
+      operationId: salkHizmetiFiltreleme
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  description: 'Must be at least 1. Must not be greater than 5.'
+                  example: 5
+                  nullable: true
+                distance:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 10.'
+                  example: 9
+                  nullable: true
+                is_open:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: true
+                services:
+                  type: array
+                  description: ''
+                  example:
+                    - vel
+                  items:
+                    type: string
+      security: []
+  /api/v1/health/load-more:
+    get:
+      summary: 'Sağlık hizmetlerini daha fazla yükle'
+      operationId: salkHizmetleriniDahaFazlaYkle
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/health/details/search:
+    get:
+      summary: 'Sağlık hizmeti arama sonuçlarında arama yap'
+      operationId: salkHizmetiAramaSonularndaAramaYap
+      description: ''
+      parameters: []
+      responses:
+        400:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Place ID gereklidir.'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Place ID gereklidir.'
+      tags:
+        - Endpoints
+      security: []
+  '/api/v1/health/details/{placeId}/reviews':
+    get:
+      summary: 'Yorumları getir'
+      operationId: yorumlarGetir
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  data:
+                    data: []
+                    meta:
+                      current_page: 1
+                      last_page: 1
+                      per_page: 10
+                      total: 0
+                      stats:
+                        user_reviews_count: 0
+                        google_reviews_count: 0
+                        total_reviews_count: 0
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        example: []
+                      meta:
+                        type: object
+                        properties:
+                          current_page:
+                            type: integer
+                            example: 1
+                          last_page:
+                            type: integer
+                            example: 1
+                          per_page:
+                            type: integer
+                            example: 10
+                          total:
+                            type: integer
+                            example: 0
+                          stats:
+                            type: object
+                            properties:
+                              user_reviews_count:
+                                type: integer
+                                example: 0
+                              google_reviews_count:
+                                type: integer
+                                example: 0
+                              total_reviews_count:
+                                type: integer
+                                example: 0
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: voluptas
+        required: true
+        schema:
+          type: string
+  '/api/v1/health/details/{placeId}/add-review':
+    post:
+      summary: 'Yorum ekle'
+      operationId: yorumEkle
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: gkkmuejtpswnsnz
+                  nullable: false
+                rating:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 5.'
+                  example: 1
+                  nullable: false
+                is_anonymous:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: false
+              required:
+                - comment
+                - rating
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: voluptate
+        required: true
+        schema:
+          type: string
+  '/api/v1/health/details/{placeId}/delete-review':
+    delete:
+      summary: 'Yorum sil'
+      operationId: yorumSil
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: magnam
+        required: true
+        schema:
+          type: string
+  '/api/v1/health/details/{placeId}/update-review':
+    put:
+      summary: 'Yorumu güncelle'
+      operationId: yorumuGncelle
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: lyjaybanvtkzvkvgogluxkey
+                  nullable: false
+                rating:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 5.'
+                  example: 3
+                  nullable: false
+                is_anonymous:
+                  type: boolean
+                  description: ''
+                  example: true
+                  nullable: false
+              required:
+                - comment
+                - rating
+                - is_anonymous
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: perferendis
+        required: true
+        schema:
+          type: string
+  /api/v1/places/search:
+    get:
+      summary: 'Sağlık hizmetlerini arama'
+      operationId: salkHizmetleriniArama
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Endpoints
+      security: []
+  '/api/v1/places/photo/{photoReference}':
+    get:
+      summary: 'Fotoğraf al'
+      operationId: fotorafAl
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Fotoğraf yüklenemedi: Fotoğraf yüklenemedi: '
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Fotoğraf yüklenemedi: Fotoğraf yüklenemedi: '
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: photoReference
+        description: ''
+        example: C$Q_
+        required: true
+        schema:
+          type: string
+  /api/v1/profile/update:
+    put:
+      summary: ''
+      operationId: putApiV1ProfileUpdate
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: ebhjzrqlomcp
+                  nullable: false
+                last_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: iqmpczsnqaypaoqb
+                  nullable: false
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: lmarks@example.com
+                  nullable: false
+                phone:
+                  type: string
+                  description: ''
+                  example: temporibus
+                  nullable: false
+                address:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: u
+                  nullable: false
+                profile_photo:
+                  type: string
+                  format: binary
+                  description: 'Must be an image. Must not be greater than 2048 kilobytes.'
+                  nullable: false
+      security: []
+  /api/v1/profile/upload-photo:
+    post:
+      summary: 'Profil fotoğrafı yükle'
+      operationId: profilFotorafYkle
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: 'Must be an image. Must not be greater than 2048 kilobytes.'
+                  nullable: false
+              required:
+                - photo
+      security: []
+  /api/v1/profile/change-password:
+    post:
+      summary: 'Şifre değiştir'
+      operationId: ifreDeitir
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: ngrptvdyudnsgtbgjqqfywlznmhviludxqlqheqbnj
+                  nullable: false
+                new_password:
+                  type: string
+                  description: 'The value and <code>current_password</code> must be different. Must be at least 8 characters.'
+                  example: vqsrhqbhowvkwlnghhfzfrjktosgc
+                  nullable: false
+                new_password_confirmation:
+                  type: string
+                  description: 'The value and <code>new_password</code> must match.'
+                  example: qui
+                  nullable: false
+              required:
+                - current_password
+                - new_password
+                - new_password_confirmation
+      security: []
+  /api/v1/profile/favorites:
+    get:
+      summary: 'Favorileri getir'
+      operationId: favorileriGetir
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Token not provided'
+                properties:
+                  message:
+                    type: string
+                    example: 'Token not provided'
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/profile/comparisons:
+    get:
+      summary: 'Karşılaştırmaları getir'
+      operationId: karlatrmalarGetir
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Token not provided'
+                properties:
+                  message:
+                    type: string
+                    example: 'Token not provided'
+      tags:
+        - Endpoints
+      security: []
+  '/api/v1/profile/favorites/{placeId}':
+    post:
+      summary: 'Favorilere ekle/çıkar'
+      operationId: favorilereEklekar
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: magni
+        required: true
+        schema:
+          type: string
+  '/api/v1/profile/comparisons/{placeId}':
+    post:
+      summary: 'Karşılaştırmalara ekle/çıkar'
+      operationId: karlatrmalaraEklekar
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: aut
+        required: true
+        schema:
+          type: string
+  '/api/v1/profile/check-lists/{placeId}':
+    get:
+      summary: 'Listeleri kontrol et'
+      operationId: listeleriKontrolEt
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Token not provided'
+                properties:
+                  message:
+                    type: string
+                    example: 'Token not provided'
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: placeId
+        description: ''
+        example: exercitationem
+        required: true
+        schema:
+          type: string
+  /api/v1/profile/reviews:
+    get:
+      summary: 'Kullanıcının yorumlarını getir'
+      operationId: kullancnnYorumlarnGetir
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Token not provided'
+                properties:
+                  message:
+                    type: string
+                    example: 'Token not provided'
+      tags:
+        - Endpoints
+      security: []
+tags:
+  -
+    name: Endpoints
+    description: ''
