@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Contracts\Services\GooglePlacesServiceInterface;
 use App\DTOs\Google\HealthSearchCriteriaDTO;
+use App\Http\Requests\HealthSearchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -21,13 +22,13 @@ class GooglePlacesController extends Controller
     /**
      * Sağlık hizmetlerini arama
      */
-    public function search(Request $request): JsonResponse
+    public function search(HealthSearchRequest $request): JsonResponse
     {
         $criteria = new HealthSearchCriteriaDTO(
-            province: $request->query('province'),
-            district: $request->query('district'),
-            facilityType: $request->query('facility_type'),
-            specialization: $request->query('specialization')
+            province: $request->province,
+            district: $request->district,
+            facilityType: $request->facility_type,
+            specialization: $request->specialization
         );
 
         $places = $this->googlePlacesService->searchHealthFacilities($criteria);

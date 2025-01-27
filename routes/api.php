@@ -43,7 +43,7 @@ Route::prefix('v1')->group(function () {
     // Google Places API rotaları
     Route::prefix('places')->group(function () {
         Route::get('search', [GooglePlacesController::class, 'search']); //www.saglik.com/api/v1/places/search
-        Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']); //www.saglik.com/api/v1/places/{placeId}/details    
+    //    Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']); //Place details üzerinden yönetilecek gerek yok.
         Route::get('photo/{photoReference}', [GooglePlacesController::class, 'getPhoto']) //www.saglik.com/api/v1/places/photo/{photoReference}
             ->name('api.places.photo')
             ->where('photoReference', '.*');
