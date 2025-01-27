@@ -46,7 +46,7 @@ class AuthController extends Controller
                 'status' => 'success',
                 'message' => $result['message'],
                 'verification_token' => $result['verification_token']
-            ]);
+            ], 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
