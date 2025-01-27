@@ -2,10 +2,7 @@
 
 namespace App\Providers;
 
-use App\Contracts\CommentServiceInterface;
 use App\Contracts\Services\GooglePlacesServiceInterface;
-use App\Contracts\ServiceManagementInterface;
-use App\Contracts\ServiceListServiceInterface;
 use App\Contracts\UserRepositoryInterface;
 use App\Contracts\UserServiceInterface;
 use App\Contracts\VerificationServiceInterface;
@@ -20,9 +17,6 @@ use App\Repositories\UserRepository;
 use App\Repositories\HealthPlaceRepository;
 use App\Repositories\ProfileRepository;
 use App\Services\Auth\VerificationService;
-use App\Services\Comment\CommentService;
-use App\Services\Service\ServiceManagementService;
-use App\Services\Service\ServiceListService;
 use App\Services\User\UserService;
 use App\Services\User\ProfileService;
 use App\Services\Google\GooglePlacesServiceV2;

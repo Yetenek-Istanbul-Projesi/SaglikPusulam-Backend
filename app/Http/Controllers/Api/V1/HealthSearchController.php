@@ -10,12 +10,18 @@ use App\Http\Requests\HealthFilterRequest;
 use App\Services\HealthSearchService;
 use App\Http\Resources\HealthSearchResource;
 
+/**
+ * Sağlık hizmeti arama ve filtreleme işlemleri
+ */
 class HealthSearchController extends Controller
 {
     public function __construct(
         private readonly HealthSearchService $healthSearchService
     ) {}
 
+    /**
+     * Sağlık hizmeti arama
+     */
     public function search(HealthSearchRequest $request)
     {
         $criteriaDTO = new HealthSearchCriteriaDTO(
@@ -30,6 +36,9 @@ class HealthSearchController extends Controller
         return new HealthSearchResource($results);
     }
 
+    /**
+     * Sağlık hizmeti filtreleme
+     */
     public function filter(HealthFilterRequest $request)
     {
         $filterDTO = HealthFilterDTO::fromRequest($request);
@@ -38,6 +47,9 @@ class HealthSearchController extends Controller
         return new HealthSearchResource($results);
     }
 
+    /**
+     * Sağlık hizmetlerini daha fazla yükle
+     */
     public function loadMore()
     {
         $results = $this->healthSearchService->getNextPage();

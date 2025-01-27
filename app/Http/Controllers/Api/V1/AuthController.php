@@ -18,6 +18,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * AuthController sınıfı, kullanıcı kaydı, giriş, şifre sıfırlama ve doğrulama işlemlerini içerir.
+ */
 class AuthController extends Controller
 {  
     private UserServiceInterface $userService;
@@ -29,6 +32,9 @@ class AuthController extends Controller
         $this->passwordResetService = $passwordResetService;
     }
 
+    /**
+     * Kullanıcı kaydı
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
@@ -56,6 +62,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Kullanıcı kaydı doğrulama
+     */
     public function verifyRegistration(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -103,6 +112,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Kullanıcı girişi
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         try {
@@ -134,6 +146,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Şifre sıfırlama bağlantısı gönder
+     */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         $this->passwordResetService->sendResetLink(
@@ -146,6 +161,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Şifre sıfırlama
+     */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         \Log::info('Reset password request data:', $request->all());

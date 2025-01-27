@@ -9,12 +9,18 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Google Places API işlemleri
+ */
 class GooglePlacesController extends Controller
 {
     public function __construct(
         private readonly GooglePlacesServiceInterface $googlePlacesService
     ) {}
 
+    /**
+     * Sağlık hizmetlerini arama
+     */
     public function search(Request $request): JsonResponse
     {
         $criteria = new HealthSearchCriteriaDTO(
@@ -32,6 +38,9 @@ class GooglePlacesController extends Controller
         ]);
     }
 
+    /**
+     * Fotoğraf URL'si al
+     */
     public function getPhotoUrl(string $photoReference): JsonResponse
     {
         if (!$photoReference) {
@@ -50,6 +59,10 @@ class GooglePlacesController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Fotoğraf al
+     */
     public function getPhoto(string $photoReference)
     {
         try {

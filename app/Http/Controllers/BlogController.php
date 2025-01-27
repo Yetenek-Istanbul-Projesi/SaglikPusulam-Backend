@@ -6,16 +6,23 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 
+/**
+ * Blog sayfalarını işlemleri
+ */
 class BlogController extends Controller
 {
-    // Blog sayfalarını görüntüleme
+    /**
+     * Blog sayfalarını görüntüleme
+     */
     public function index()
     {
         $posts = Post::all();
         return view('pages.blog', compact('posts'));
     }
 
-    // Blog sayfasını görüntüleme
+    /**
+     * Blog sayfasını görüntüleme
+     */
     public function show(string $slug) 
     {
         $post = Post::where('slug', $slug)->firstOrFail();

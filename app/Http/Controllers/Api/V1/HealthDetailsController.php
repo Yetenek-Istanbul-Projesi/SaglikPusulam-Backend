@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Sağlık hizmeti detayları işlemleri
+ */
 class HealthDetailsController extends Controller
 {
     public function __construct(
@@ -22,6 +25,9 @@ class HealthDetailsController extends Controller
         private readonly ReviewServiceInterface $reviewService
     ) {}
 
+    /**
+     * Sağlık hizmeti arama sonuçlarında arama yap
+     */
     public function findSearchInResults(Request $request): JsonResponse
     {
         $placeId = $request->input('placeId');
@@ -46,6 +52,9 @@ class HealthDetailsController extends Controller
         }
     }
 
+    /**
+     * Sağlık hizmeti detaylarını getir
+     */
     public function findPlaceDetails(Request $request): JsonResponse
     {
         $placeId = $request->input('placeId');
@@ -167,6 +176,9 @@ class HealthDetailsController extends Controller
         }
     }
 
+    /**
+     * Yorum ekle
+     */
     public function addReview(AddReviewRequest $request, string $placeId): JsonResponse
     {
         try {
