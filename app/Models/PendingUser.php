@@ -17,7 +17,10 @@ class PendingUser extends Model
         'password',
         'verification_token',
         'terms_accepted',
-        'privacy_accepted'
+        'privacy_accepted',
+        'email_verification_code',
+        'phone_verification_code',
+        'codes_expire_at'
     ];
 
     /**
@@ -51,5 +54,6 @@ class PendingUser extends Model
     protected $casts = [
         'terms_accepted' => 'boolean',
         'privacy_accepted' => 'boolean',
+        'codes_expire_at' => 'datetime'
     ];
 }

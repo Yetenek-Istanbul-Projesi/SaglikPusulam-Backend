@@ -23,6 +23,8 @@ class User extends Authenticatable implements JWTSubject
         'privacy_accepted',
         'address',
         'photo',
+        'email_verified_at',
+        'phone_verified_at'
     ];
 
     protected $hidden = [
@@ -32,12 +34,17 @@ class User extends Authenticatable implements JWTSubject
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
         'password' => 'hashed',
+    ];
+
+    protected $attributes = [
+        'photo' => '/images/default-profile.png'
     ];
 
     public function reviews(): HasMany
     {
-        return $this->hasMany(ServiceReview::class);
+        return $this->hasMany(PlaceReview::class);
     }
 
     public function getJWTIdentifier()

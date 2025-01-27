@@ -3,26 +3,32 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\Service\ServiceManagementService;
 use App\Contracts\Services\GooglePlacesServiceInterface;
 use App\DTOs\Google\HealthSearchCriteriaDTO;
+use App\Http\Requests\HealthSearchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Google Places API işlemleri
+ */
 class GooglePlacesController extends Controller
 {
     public function __construct(
-        private readonly ServiceManagementService $serviceManagementService,
         private readonly GooglePlacesServiceInterface $googlePlacesService
     ) {}
 
-    public function search(Request $request): JsonResponse
+    /**
+     * Sağlık hizmetlerini arama
+     */
+    public function search(HealthSearchRequest $request): JsonResponse
     {
         $criteria = new HealthSearchCriteriaDTO(
-            province: $request->query('province'),
-            district: $request->query('district'),
-            facilityType: $request->query('facility_type'),
-            specialization: $request->query('specialization')
+            province: $request->province,
+            district: $request->district,
+            facilityType: $request->facility_type,
+            specialization: $request->specialization
         );
 
         $places = $this->googlePlacesService->searchHealthFacilities($criteria);
@@ -33,9 +39,19 @@ class GooglePlacesController extends Controller
         ]);
     }
 
+    /**
+     * Fotoğraf URL'si al
+     */
     public function getPhotoUrl(string $photoReference): JsonResponse
     {
-        $url = $this->googlePlacesService->getPhotoUrl($photoReference);
+        if (!$photoReference) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fotoğraf referansı bulunamadı'
+            ], 400);
+        }
+
+        $url = $this->googlePlacesService->getPhotoUrl($photoReference, 400);
 
         return response()->json([
             'success' => true,
@@ -43,5 +59,42 @@ class GooglePlacesController extends Controller
                 'url' => $url
             ]
         ]);
+    }
+
+    /**
+     * Fotoğraf al
+     */
+    public function getPhoto(string $photoReference)
+    {
+        try {
+            if (!$photoReference) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Fotoğraf referansı bulunamadı'
+                ], 400);
+            }
+
+            $photoData = $this->googlePlacesService->fetchPhoto($photoReference);
+
+            // Raw binary response
+            return response($photoData)
+                ->withHeaders([
+                    'Content-Type' => 'image/jpeg',
+                    'Content-Length' => strlen($photoData),
+                    'Cache-Control' => 'public, max-age=86400',
+                    'X-Content-Type-Options' => 'nosniff'
+                ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Photo fetch error', [
+                'error' => $e->getMessage(),
+                'photoReference' => $photoReference
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Fotoğraf yüklenemedi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
