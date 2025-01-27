@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
         Route::post('filter', [HealthSearchController::class, 'filter']); //www.saglik.com/api/v1/health/filter   
         Route::get('load-more', [HealthSearchController::class, 'loadMore']); //www.saglik.com/api/v1/health/load-more
         Route::get('details/search', [HealthDetailsController::class, 'findSearchInResults']); //www.saglik.com/api/v1/health/details/search
-        Route::get('details/database', [HealthDetailsController::class, 'findInDatabase']); //www.saglik.com/api/v1/health/details/database
+      //  Route::get('details/database', [HealthDetailsController::class, 'findInDatabase']); //Database üzerinden yönetilecek gerek yok.
 
         Route::prefix('details')->group(function () {
             Route::get('{placeId}/reviews', [HealthDetailsController::class, 'getReviews']); //www.saglik.com/api/v1/health/details/{placeId}/reviews
@@ -43,7 +43,7 @@ Route::prefix('v1')->group(function () {
     // Google Places API rotaları
     Route::prefix('places')->group(function () {
         Route::get('search', [GooglePlacesController::class, 'search']); //www.saglik.com/api/v1/places/search
-        Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']); //www.saglik.com/api/v1/places/{placeId}/details    
+    //    Route::get('{placeId}/details', [GooglePlacesController::class, 'getDetails']); //Place details üzerinden yönetilecek gerek yok.
         Route::get('photo/{photoReference}', [GooglePlacesController::class, 'getPhoto']) //www.saglik.com/api/v1/places/photo/{photoReference}
             ->name('api.places.photo')
             ->where('photoReference', '.*');

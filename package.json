@@ -1,9 +1,18 @@
 {
+    "name": "saglik-pusulam-backend",
+    "version": "1.0.0",
+    "description": "Sağlık hizmetleri arama ve değerlendirme platformu API'si",
+    "author": "Yetenek ISTKA",
     "private": true,
-    "type": "module",
+    "license": "MIT",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "test": "php artisan test",
+        "docs": "php artisan scribe:generate",
+        "dev": "php artisan serve",
+        "queue": "php artisan queue:work",
+        "migrate": "php artisan migrate",
+        "seed": "php artisan db:seed",
+        "storage-link": "php artisan storage:link"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.20",
