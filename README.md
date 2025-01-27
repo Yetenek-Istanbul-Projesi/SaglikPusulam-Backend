@@ -226,7 +226,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICEN
 
 Proje Sahibi - teams -> @yetenekistka
 
-Proje Linki: [https://github.com/your-username/SaglikPusulam-Backend](https://github.com/your-username/SaglikPusulam-Backend)
+Proje Linki: [https://github.com/Yetenek-Istanbul-Projesi/SaglikPusulam-Backend](https://github.com/Yetenek-Istanbul-Projesi/SaglikPusulam-Backend)
 
 ## 🙏 Teşekkürler
 
@@ -235,4 +235,4 @@ Proje Linki: [https://github.com/your-username/SaglikPusulam-Backend](https://gi
 - [JWT Auth](https://jwt.io)
 - [PHPUnit](https://phpunit.de)
 - [Scribe](https://scribe.knuckles.wtf)
-- [Yetenek ISTKA]([https://yetenekistanbul.gedik.edu.tr]](https://yetenekistanbul.gedik.edu.tr/))
+- [Yetenek ISTKA]((https://yetenekistanbul.gedik.edu.tr/))
